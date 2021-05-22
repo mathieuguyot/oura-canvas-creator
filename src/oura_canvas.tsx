@@ -13,21 +13,24 @@ import {
     NodeModel,
     XYPosition,
     SelectionItem,
-    AddNodeContextualMenu
+    AddNodeContextualMenu,
+    SelectionManagementContextualMenu
 } from "oura-node-editor";
 import { createNodeSchema, Node } from "./nodes";
 import CanvasNode from "./nodes/canvas";
+import { createCustomConnectorsContents } from "./connector_content";
 // import { dumbLinkCreator, dumbNodeCreator } from "./debug";
 
 const OuraCanvasApp = (): JSX.Element => {
     const [nodePickerPos, setNodePickerPos] = React.useState<XYPosition | null>(null);
+    const [nodePickerOnMouseHover, setNodePickerOnMouseHover] = React.useState<boolean>(false);
     const [panZoomInfo, setPanZoomInfo] = React.useState<PanZoomModel>({
         zoom: 1,
         topLeftCorner: { x: 0, y: 0 }
     });
     const [selectedItems, setSelectedItems] = React.useState<SelectionItem[]>([]);
-    const [nodes, setNodes] = React.useState<NodeCollection>({} /* dumbNodeCreator() */);
-    const [links, setLinks] = React.useState<LinkCollection>({} /* dumbLinkCreator(nodes) */);
+    const [nodes, setNodes] = React.useState<NodeCollection>(/*dumbNodeCreator()*/{});
+    const [links, setLinks] = React.useState<LinkCollection>(/*dumbLinkCreator(nodes)*/{});
     const canvasRef = React.useRef<HTMLCanvasElement>(null);
 
     const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema(canvasRef);
@@ -36,7 +39,20 @@ const OuraCanvasApp = (): JSX.Element => {
         Object.keys(curNodes).forEach((key) => {
             const node = curNodes[key];
             if (node instanceof CanvasNode) {
-                (node as Node).compute(curNodes, curLink);
+                try {
+                    (node as Node).compute(curNodes, curLink);
+                } catch(e) {
+                    // Display error in case of compute failure
+                    if(canvasRef.current) {
+                        const ctx = canvasRef.current.getContext("2d");
+                        if (ctx) {
+                            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                            ctx.fillStyle = "red";
+                            ctx.fillText(e, 10, 10);
+                            ctx.fillStyle = "black";
+                        }
+                    }
+                }
             }
         });
     }, []);
@@ -60,18 +76,28 @@ const OuraCanvasApp = (): JSX.Element => {
             setLinks(newLinks);
             redrawCanvas(nodes, newLinks);
         },
-        [nodes, links]
+        [nodes, links, redrawCanvas]
     );
 
-    /* const onNodeDeletion = React.useCallback(
-        (id: string) => {
-            const newNodes = { ...nodes };
-            delete newNodes[id];
+    const onDeleteSelection = React.useCallback(
+        () => {
+            const newNodes = produce(nodes, (draft: NodeCollection) => {
+                selectedItems.forEach((item: SelectionItem) => {
+                    if(item.type === "node") {
+                        delete draft[item.id];
+                    }
+                });
+            });
             const newLinks = produce(links, (draft: LinkCollection) => {
-                Object.keys(links).forEach((key) => {
-                    const link = links[key];
-                    if (link.inputNodeId === id || link.outputNodeId === id) {
-                        delete draft[key];
+                Object.keys(links).forEach(linkKey => {
+                    const link = links[linkKey];
+                    if (!(link.inputNodeId in newNodes) || !(link.outputNodeId in newNodes)) {
+                        delete draft[linkKey];
+                    }
+                });
+                selectedItems.forEach((item: SelectionItem) => {
+                    if(item.type === "link") {
+                        delete draft[item.id];
                     }
                 });
             });
@@ -79,18 +105,8 @@ const OuraCanvasApp = (): JSX.Element => {
             setLinks(newLinks);
             redrawCanvas(newNodes, newLinks);
         },
-        [nodes, links]
+        [nodes, links, selectedItems, setNodes, setLinks, redrawCanvas]
     );
-
-    const onLinkDeletion = React.useCallback(
-        (id: string) => {
-            const newLinks = { ...links };
-            delete newLinks[id];
-            setLinks(newLinks);
-            redrawCanvas(nodes, newLinks);
-        },
-        [nodes, links]
-    ); */
 
     const onNodeSelection = React.useCallback(
         (id: string) => {
@@ -107,10 +123,11 @@ const OuraCanvasApp = (): JSX.Element => {
                     draft[generateUuid()] = newNode;
                 });
                 setNodes(newNodes);
+                setNodePickerOnMouseHover(false);
                 setNodePickerPos(null);
             }
         },
-        [panZoomInfo, nodes, links, nodePickerPos]
+        [panZoomInfo, nodes, nodePickerPos, nodesSchemas]
     );
 
     const onConnectorUpdate = React.useCallback(
@@ -121,7 +138,7 @@ const OuraCanvasApp = (): JSX.Element => {
             setNodes(newNodes);
             redrawCanvas(newNodes, links);
         },
-        [nodes, links]
+        [nodes, links, redrawCanvas]
     );
 
     const onContextMenu = React.useCallback(
@@ -130,10 +147,21 @@ const OuraCanvasApp = (): JSX.Element => {
             if (!nodePickerPos) {
                 setNodePickerPos({ x: event.pageX, y: event.pageY });
             } else {
+                setNodePickerOnMouseHover(false);
                 setNodePickerPos(null);
             }
         },
         [nodePickerPos]
+    );
+
+    const onMouseDown = React.useCallback(
+        () => {
+            if(nodePickerPos && !nodePickerOnMouseHover) {
+                setNodePickerOnMouseHover(false);
+                setNodePickerPos(null);
+            }
+        },
+        [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]
     );
 
     const canvas = (
@@ -152,8 +180,27 @@ const OuraCanvasApp = (): JSX.Element => {
         />
     );
 
-    const nodePicker = nodePickerPos ? (
-        <div
+    let nodePicker = null;
+    if(nodePickerPos && selectedItems.length === 0) {
+        nodePicker = <div
+                style={{
+                    width: 640,
+                    height: 480,
+                    position: "absolute",
+                    top: nodePickerPos.y,
+                    left: nodePickerPos.x,
+                    backgroundColor: "white"
+                }}>
+                <AddNodeContextualMenu 
+                    nodesSchema={nodesSchemas}
+                    onNodeSelection={onNodeSelection}
+                    onMouseHover={setNodePickerOnMouseHover}
+                    createCustomConnectorComponent={createCustomConnectorsContents}
+                />
+            </div>;
+    }
+    else if(nodePickerPos) {
+        nodePicker = <div
             style={{
                 width: 640,
                 height: 480,
@@ -162,15 +209,20 @@ const OuraCanvasApp = (): JSX.Element => {
                 left: nodePickerPos.x,
                 backgroundColor: "white"
             }}>
-            <AddNodeContextualMenu nodesSchema={nodesSchemas} onNodeSelection={onNodeSelection} />
-        </div>
-    ) : null;
+                <SelectionManagementContextualMenu
+                    onMouseHover={setNodePickerOnMouseHover}
+                    onDeleteSelection={onDeleteSelection}
+                />
+            </div>
+    }
+
 
     return (
         <>
             <div
                 style={{ width: "100%", height: "100%" }}
                 onContextMenu={onContextMenu}
+                onMouseDown={onMouseDown}
                 tabIndex={0}>
                 <NodeEditor
                     panZoomInfo={panZoomInfo}
@@ -182,6 +234,7 @@ const OuraCanvasApp = (): JSX.Element => {
                     onNodeMove={onNodeMove}
                     onCreateLink={onCreateLink}
                     onConnectorUpdate={onConnectorUpdate}
+                    createCustomConnectorComponent={createCustomConnectorsContents}
                 />
                 {canvas}
                 {nodePicker}
