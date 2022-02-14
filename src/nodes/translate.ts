@@ -3,12 +3,18 @@ import Node from "./node";
 import { PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
 
-export default class RotateNode extends Node {
+export default class TranslateNode extends Node {
     constructor() {
-        super(NodeName.Rotate, 100, {x:0, y:0}, {
+        super(NodeName.Translate, 100, {x:0, y:0}, {
             0: { name: "draw", pinLayout: PinLayout.BOTH_PINS, contentType: "none", data: {} },
             1: {
-                name: "angle",
+                name: "x",
+                pinLayout: PinLayout.LEFT_PIN,
+                contentType: "number",
+                data: { value: 0 }
+            },
+            2: {
+                name: "y",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "number",
                 data: { value: 0 }
@@ -16,24 +22,24 @@ export default class RotateNode extends Node {
         });
     }
 
-    static createFromJson(jsonObj: any) : RotateNode {
-        let node = new RotateNode();
+    static createFromJson(jsonObj: any) : TranslateNode {
+        let node = new TranslateNode();
         Node.initFromJson(jsonObj, node);
         return node;
     }
 
     protected computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
-        let rotation = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
-        rotation = (rotation * Math.PI) / 180;
-        const drawWithRotation = (ctx: CanvasRenderingContext2D): void => {
-            ctx.rotate(rotation);
+        let x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
+        let y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
+        const drawWithTranslate = (ctx: CanvasRenderingContext2D): void => {
+            ctx.translate(x, y);
             if (inputs[0]) {
                 inputs[0].forEach((draw: (arg0: CanvasRenderingContext2D) => void) => {
                     draw(ctx);
                 });
             }
-            ctx.rotate(-rotation);
+            ctx.translate(-x, -y);
         };
-        return { "0": drawWithRotation };
+        return { "0": drawWithTranslate };
     }
 }

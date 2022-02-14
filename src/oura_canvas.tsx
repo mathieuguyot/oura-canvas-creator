@@ -16,7 +16,7 @@ import {
     AddNodeContextualMenu,
     SelectionManagementContextualMenu
 } from "oura-node-editor";
-import { createNodeSchema, Node } from "./nodes";
+import { createNodeFromJson, createNodeSchema, Node } from "./nodes";
 import CanvasNode from "./nodes/canvas";
 import { createCustomConnectorsContents } from "./connector_content";
 // import { dumbLinkCreator, dumbNodeCreator } from "./debug";
@@ -29,116 +29,134 @@ const OuraCanvasApp = (): JSX.Element => {
         topLeftCorner: { x: 0, y: 0 }
     });
     const [selectedItems, setSelectedItems] = React.useState<SelectionItem[]>([]);
-    const [nodes, setNodes] = React.useState<NodeCollection>(/*dumbNodeCreator()*/{});
-    const [links, setLinks] = React.useState<LinkCollection>(/*dumbLinkCreator(nodes)*/{});
-    const canvasRef = React.useRef<HTMLCanvasElement>(null);
+    const locallyStoredNodes = localStorage.getItem("nodes");
+    const locallyStoredLinks = localStorage.getItem("links");
+    const initNodes: NodeCollection = locallyStoredNodes ? JSON.parse(locallyStoredNodes) : {};
+    const initLinks: LinkCollection = locallyStoredLinks ? JSON.parse(locallyStoredLinks) : {};
+    if(locallyStoredNodes) {
+        Object.keys(initNodes).forEach((key) => {
+            initNodes[key] = createNodeFromJson(initNodes[key]);
+        });
+    }
+    const [nodes, setNodes] = React.useState<NodeCollection>(initNodes);
+    const [links, setLinks] = React.useState<LinkCollection>(initLinks);
+    localStorage.setItem("nodes", JSON.stringify(nodes));
+    localStorage.setItem("links", JSON.stringify(links));
 
-    const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema(canvasRef);
+    const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema();
 
-    const redrawCanvas = React.useCallback((curNodes: NodeCollection, curLink: LinkCollection) => {
-        Object.keys(curNodes).forEach((key) => {
-            const node = curNodes[key];
+    // Redraw canvas effect
+    React.useEffect(() => {
+        Object.keys(nodes).forEach((key) => {
+            const node = nodes[key];
             if (node instanceof CanvasNode) {
                 try {
-                    (node as Node).compute(curNodes, curLink);
-                } catch(e) {
-                    // Display error in case of compute failure
-                    if(canvasRef.current) {
-                        const ctx = canvasRef.current.getContext("2d");
-                        if (ctx) {
-                            ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-                            ctx.fillStyle = "red";
-                            ctx.fillText(e, 10, 10);
-                            ctx.fillStyle = "black";
-                        }
-                    }
+                    (node as Node).compute(nodes, links);
+                } catch(e: any) {
+                    console.error(e);
                 }
             }
         });
-    }, []);
+    }, [nodes, links]);
+
+    React.useEffect(() => {
+        const interval = setInterval(() => {
+            let updated = false;
+            const newNodes = produce(nodes, (draft: NodeCollection) => {
+                for (let key of Object.keys(nodes)) {
+                    if(draft[key].name === "timer" && draft[key].connectors[1].data.value) {
+                        draft[key].connectors[0].data.value = (Number(draft[key].connectors[0].data.value) + 1).toString();
+                        updated = true;
+                    }
+                }
+            });
+            if(updated) {
+                setNodes(newNodes);
+            }
+        }, 1000 / 60);
+        return () => clearInterval(interval);
+      }, [nodes, links]);
 
     const onNodeMove = React.useCallback(
-        (id: string, newX: number, newY: number, newWidth: number) => {
-            const newNodes = produce(nodes, (draft: NodeCollection) => {
-                draft[id].position = { x: newX, y: newY };
-                draft[id].width = newWidth;
-            });
-            setNodes(newNodes);
-        },
-        [nodes]
+        (id: string, newX: number, newY: number, newWidth: number) => { 
+            setNodes(
+                nodes => produce(nodes, (draft: NodeCollection) => {
+                    draft[id].position = { x: newX, y: newY };
+                    draft[id].width = newWidth;
+                })
+            );
+        }, []
     );
 
     const onCreateLink = React.useCallback(
         (link: LinkModel) => {
-            const newLinks = produce(links, (draft) => {
-                draft[generateUuid()] = link;
-            });
-            setLinks(newLinks);
-            redrawCanvas(nodes, newLinks);
-        },
-        [nodes, links, redrawCanvas]
+            setLinks(
+                links => produce(links, (draft) => {
+                    draft[generateUuid()] = link;
+                })
+            );
+        }, []
     );
 
     const onDeleteSelection = React.useCallback(
         () => {
-            const newNodes = produce(nodes, (draft: NodeCollection) => {
-                selectedItems.forEach((item: SelectionItem) => {
-                    if(item.type === "node") {
-                        delete draft[item.id];
-                    }
-                });
-            });
-            const newLinks = produce(links, (draft: LinkCollection) => {
-                Object.keys(links).forEach(linkKey => {
-                    const link = links[linkKey];
-                    if (!(link.inputNodeId in newNodes) || !(link.outputNodeId in newNodes)) {
-                        delete draft[linkKey];
-                    }
-                });
-                selectedItems.forEach((item: SelectionItem) => {
-                    if(item.type === "link") {
-                        delete draft[item.id];
-                    }
-                });
-            });
-            setNodes(newNodes);
-            setLinks(newLinks);
-            redrawCanvas(newNodes, newLinks);
+            const deleteNodeIds = selectedItems.filter((value: SelectionItem) => value.type === "node").map((value) => value.id);
+            const deletedLinksIds = selectedItems.filter((value: SelectionItem) => value.type === "link").map((value) => value.id);
+            setNodes(
+                nodes => produce(nodes, (draft: NodeCollection) => {
+                    deleteNodeIds.forEach((id) => {
+                        delete draft[id];
+                    });
+                })
+            );
+            setLinks(
+                links => produce(links, (draft: LinkCollection) => {
+                    Object.keys(links).forEach(linkKey => {
+                        const link = links[linkKey];
+                        if (deleteNodeIds.includes(link.inputNodeId) || deleteNodeIds.includes(link.outputNodeId)) {
+                            delete draft[linkKey];
+                        }
+                    });
+                    deletedLinksIds.forEach((id) => {
+                        delete draft[id];
+                    });
+                })
+            );
         },
-        [nodes, links, selectedItems, setNodes, setLinks, redrawCanvas]
+        [selectedItems]
     );
 
     const onNodeSelection = React.useCallback(
         (id: string) => {
             if (nodePickerPos) {
-                const newNode = _.clone(nodesSchemas[id]);
-                const newX =
-                    -panZoomInfo.topLeftCorner.x / panZoomInfo.zoom +
-                    nodePickerPos.x / panZoomInfo.zoom;
-                const newY =
-                    -panZoomInfo.topLeftCorner.y / panZoomInfo.zoom +
-                    nodePickerPos.y / panZoomInfo.zoom;
-                newNode.position = { x: newX, y: newY };
-                const newNodes = produce(nodes, (draft) => {
-                    draft[generateUuid()] = newNode;
-                });
-                setNodes(newNodes);
+                setNodes(
+                    nodes => produce(nodes, (draft) => {
+                        const newNode = _.clone(nodesSchemas[id]);
+                        const newX =
+                            -panZoomInfo.topLeftCorner.x / panZoomInfo.zoom +
+                            nodePickerPos.x / panZoomInfo.zoom;
+                        const newY =
+                            -panZoomInfo.topLeftCorner.y / panZoomInfo.zoom +
+                            nodePickerPos.y / panZoomInfo.zoom;
+                        newNode.position = { x: newX, y: newY };
+                        draft[generateUuid()] = newNode;
+                    })
+                );
                 setNodePickerOnMouseHover(false);
                 setNodePickerPos(null);
             }
         },
-        [panZoomInfo, nodes, nodePickerPos, nodesSchemas]
+        [panZoomInfo, nodePickerPos, nodesSchemas]
     );
 
     const onConnectorUpdate = React.useCallback(
         (nodeId: string, cId: string, connector: ConnectorModel) => {
-            const newNodes = produce(nodes, (draft) => {
-                draft[nodeId].connectors[cId] = connector;
-            });
-            setNodes(newNodes);
-            redrawCanvas(newNodes, links);
-        },
-        [nodes, links, redrawCanvas]
+            setNodes(
+                nodes => produce(nodes, (draft) => {
+                    draft[nodeId].connectors[cId] = connector;
+                })
+            );
+        }, []
     );
 
     const onContextMenu = React.useCallback(
@@ -162,22 +180,6 @@ const OuraCanvasApp = (): JSX.Element => {
             }
         },
         [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]
-    );
-
-    const canvas = (
-        <canvas
-            width={640}
-            height={480}
-            style={{
-                width: 640,
-                height: 480,
-                position: "absolute",
-                right: 20,
-                bottom: 20,
-                backgroundColor: "white"
-            }}
-            ref={canvasRef}
-        />
     );
 
     let nodePicker = null;
@@ -216,7 +218,6 @@ const OuraCanvasApp = (): JSX.Element => {
             </div>
     }
 
-
     return (
         <>
             <div
@@ -236,7 +237,6 @@ const OuraCanvasApp = (): JSX.Element => {
                     onConnectorUpdate={onConnectorUpdate}
                     createCustomConnectorComponent={createCustomConnectorsContents}
                 />
-                {canvas}
                 {nodePicker}
             </div>
         </>

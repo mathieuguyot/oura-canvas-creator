@@ -7,7 +7,8 @@ import {
     NodeCollection,
     NodeModel,
     PinLayout,
-    PinSide
+    PinSide,
+    XYPosition
 } from "oura-node-editor";
 
 const getLinks = (links: LinkCollection, nodeId: string, cId: string): Array<LinkModel> => {
@@ -27,14 +28,22 @@ const getLinks = (links: LinkCollection, nodeId: string, cId: string): Array<Lin
 export default abstract class Node implements NodeModel {
     [immerable] = true;
     public name: string;
-    public position = { x: 0, y: 0 };
+    public position: XYPosition;
     public width: number;
     public connectors: ConnectorCollection;
 
-    constructor(name: string, width: number, connectors: ConnectorCollection) {
+    constructor(name: string, width: number, position: XYPosition, connectors: ConnectorCollection) {
         this.name = name;
         this.width = width;
+        this.position = position;
         this.connectors = connectors;
+    }
+
+    static initFromJson(jsonObj: any, node: Node) {
+        node.name = jsonObj.name;
+        node.width = jsonObj.width;
+        node.position = jsonObj.position;
+        node.connectors = jsonObj.connectors;
     }
 
     compute(nodes: NodeCollection, links: LinkCollection): { [id: string]: any } {

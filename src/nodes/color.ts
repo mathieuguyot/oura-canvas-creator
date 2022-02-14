@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Node from "./node";
 import { PinLayout } from "oura-node-editor";
+import { NodeName } from "./consts";
 
 export default class ColorNode extends Node {
     constructor() {
-        super("color", 250, {
+        super(NodeName.Color, 250, {x:0, y:0}, {
             0: {
                 name: "color",
                 pinLayout: PinLayout.RIGHT_PIN,
@@ -18,6 +19,12 @@ export default class ColorNode extends Node {
                 data: {  }
             }
         });
+    }
+
+    static createFromJson(jsonObj: any) : ColorNode {
+        let node = new ColorNode();
+        Node.initFromJson(jsonObj, node);
+        return node;
     }
 
     protected computeSpecific(): { [id: string]: any } {

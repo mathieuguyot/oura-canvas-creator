@@ -3,20 +3,20 @@ import Node from "./node";
 import { PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
 
-export default class NumberNode extends Node {
+export default class StringNode extends Node {
     constructor() {
-        super(NodeName.Number, 100, {x:0, y:0}, {
+        super(NodeName.String, 100, {x:0, y:0}, {
             0: {
-                name: "number",
+                name: "string",
                 pinLayout: PinLayout.RIGHT_PIN,
-                contentType: "number",
-                data: { value: "0" }
+                contentType: "string",
+                data: { value: "" }
             }
         });
     }
 
-    static createFromJson(json: string) : NumberNode {
-        let node = new NumberNode();
+    static createFromJson(json: string) : StringNode {
+        let node = new StringNode();
         Node.initFromJson(json, node);
         return node;
     }
