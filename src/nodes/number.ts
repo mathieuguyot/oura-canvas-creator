@@ -10,7 +10,7 @@ export default class NumberNode extends Node {
                 name: "number",
                 pinLayout: PinLayout.RIGHT_PIN,
                 contentType: "number",
-                data: { value: "0" }
+                data: { value: 0 }
             }
         });
     }

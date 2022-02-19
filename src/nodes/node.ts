@@ -46,7 +46,7 @@ export default abstract class Node implements NodeModel {
         node.connectors = jsonObj.connectors;
     }
 
-    compute(nodes: NodeCollection, links: LinkCollection): { [id: string]: any } {
+    compute(nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         const nodeId = Object.keys(nodes).find((key) => nodes[key] === this);
         if (nodeId) {
             const inputs: { [id: string]: any } = {};
@@ -73,7 +73,7 @@ export default abstract class Node implements NodeModel {
                             return;
                         }
                         const otherNode = nodes[otherNodeId];
-                        const res = (otherNode as Node).compute(nodes, links);
+                        const res = (otherNode as Node).compute(nodes, links, setNodes);
                         if (!(key in inputs)) {
                             inputs[key] = [];
                         }
@@ -81,10 +81,10 @@ export default abstract class Node implements NodeModel {
                     });
                 }
             });
-            return this.computeSpecific(inputs);
+            return this.computeSpecific(inputs, nodeId, setNodes);
         }
         return {};
     }
 
-    protected abstract computeSpecific(inputs: { [id: string]: any }): { [id: string]: any };
+    protected abstract computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any };
 }

@@ -51,7 +51,7 @@ const OuraCanvasApp = (): JSX.Element => {
             const node = nodes[key];
             if (node instanceof CanvasNode) {
                 try {
-                    (node as Node).compute(nodes, links);
+                    (node as Node).compute(nodes, links, setNodes);
                 } catch(e: any) {
                     console.error(e);
                 }
@@ -187,7 +187,7 @@ const OuraCanvasApp = (): JSX.Element => {
         nodePicker = <div
                 style={{
                     width: 640,
-                    height: 480,
+                    height: 500,
                     position: "absolute",
                     top: nodePickerPos.y,
                     left: nodePickerPos.x,
