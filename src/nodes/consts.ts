@@ -1,7 +1,6 @@
 export enum NodeName {
     Canvas = "canvas",
     Color = "color",
-    Modulo = "modulo",
     Number = "number",
     Rectangle = "rectangle",
     Rotate = "rotate",
@@ -9,5 +8,6 @@ export enum NodeName {
     Translate = "translate",
     IfElse = "if-else",
     String = "string",
-    Split = "split"
+    Split = "split",
+    Operation = "operation"
 }

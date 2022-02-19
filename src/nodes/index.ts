@@ -7,12 +7,12 @@ import RotateNode from "./rotate";
 import NumberNode from "./number";
 import ColorNode from "./color";
 import TimerNode from "./timer";
-import ModuloNode from "./modulo";
 import { NodeName } from "./consts";
 import TranslateNode from "./translate";
 import IfElseNode from "./if_else";
 import StringNode from "./string";
 import SplitNode from "./split";
+import OperationNode from "./operation";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -21,12 +21,12 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         2: new RotateNode(),
         3: new NumberNode(),
         4: new TimerNode(),
-        5: new ModuloNode(),
-        6: new ColorNode(),
-        7: new TranslateNode(),
-        8: new IfElseNode(),
-        9: new StringNode(),
-        10: new SplitNode(),
+        5: new ColorNode(),
+        6: new TranslateNode(),
+        7: new IfElseNode(),
+        8: new StringNode(),
+        9: new SplitNode(),
+        10: new OperationNode()
     };
 }
 
@@ -38,9 +38,6 @@ function createNodeFromJson(jsonObj: any) : Node {
             break;
         case NodeName.Color:
             node = ColorNode.createFromJson(jsonObj);
-            break;
-        case NodeName.Modulo:
-            node = ModuloNode.createFromJson(jsonObj);
             break;
         case NodeName.Number:
             node = NumberNode.createFromJson(jsonObj);
@@ -63,8 +60,9 @@ function createNodeFromJson(jsonObj: any) : Node {
         case NodeName.String:
             node = StringNode.createFromJson(jsonObj);
             break;
-        case NodeName.Split:
-            node = SplitNode.createFromJson(jsonObj);
+        case NodeName.Operation:
+            node = OperationNode.createFromJson(jsonObj);
+            break;
     }
     if(!node) {
         throw new Error("Error while reading node from json"); 
