@@ -9,5 +9,6 @@ export enum NodeName {
     IfElse = "if-else",
     String = "string",
     Split = "split",
-    Operation = "operation"
+    Operation = "operation",
+    Log = "log"
 }

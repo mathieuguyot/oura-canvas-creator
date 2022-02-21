@@ -13,6 +13,7 @@ import IfElseNode from "./if_else";
 import StringNode from "./string";
 import SplitNode from "./split";
 import OperationNode from "./operation";
+import LogNode from "./log";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -26,7 +27,8 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         7: new IfElseNode(),
         8: new StringNode(),
         9: new SplitNode(),
-        10: new OperationNode()
+        10: new OperationNode(),
+        11: new LogNode()
     };
 }
 
@@ -60,8 +62,14 @@ function createNodeFromJson(jsonObj: any) : Node {
         case NodeName.String:
             node = StringNode.createFromJson(jsonObj);
             break;
+        case NodeName.Split:
+            node = SplitNode.createFromJson(jsonObj);
+            break;
         case NodeName.Operation:
             node = OperationNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Log:
+            node = LogNode.createFromJson(jsonObj);
             break;
     }
     if(!node) {

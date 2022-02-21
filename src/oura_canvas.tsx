@@ -19,6 +19,7 @@ import {
 import { createNodeFromJson, createNodeSchema, Node } from "./nodes";
 import CanvasNode from "./nodes/canvas";
 import { createCustomConnectorsContents } from "./connector_content";
+import LogNode from "./nodes/log";
 // import { dumbLinkCreator, dumbNodeCreator } from "./debug";
 
 const OuraCanvasApp = (): JSX.Element => {
@@ -49,7 +50,7 @@ const OuraCanvasApp = (): JSX.Element => {
     React.useEffect(() => {
         Object.keys(nodes).forEach((key) => {
             const node = nodes[key];
-            if (node instanceof CanvasNode) {
+            if (node instanceof CanvasNode || node instanceof LogNode) {
                 try {
                     (node as Node).compute(nodes, links, setNodes);
                 } catch(e: any) {
