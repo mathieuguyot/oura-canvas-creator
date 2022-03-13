@@ -1,5 +1,6 @@
 {
   "name": "oura-canvas-creator",
+  "homepage": "https://mathieuguyot.github.io/oura-canvas-creator",
   "version": "0.1.0",
   "dependencies": {
     "@types/jest": "^26.0.19",
@@ -19,6 +20,8 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -40,6 +43,7 @@
     ]
   },
   "devDependencies": {
-    "@types/react-color": "^3.0.4"
+    "@types/react-color": "^3.0.4",
+    "gh-pages": "^3.2.3"
   }
 }
