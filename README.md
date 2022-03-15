@@ -8,3 +8,5 @@ You can test this project using this [link](https://mathieuguyot.github.io/oura-
 (right click to add a node)
 
 ![canvas editor](doc/img/canvas-editor.png)
+
+License MIT © [Mathieu Guyot](https://github.com/mathieuguyot)
