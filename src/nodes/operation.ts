@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Node from "./node";
-import { PinLayout } from "oura-node-editor";
+import { NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
+import produce from "immer";
 
 export default class OperationNode extends Node {
     constructor() {
@@ -9,8 +10,8 @@ export default class OperationNode extends Node {
             0: {
                 name: "output",
                 pinLayout: PinLayout.RIGHT_PIN,
-                contentType: "none",
-                data: { value: 0 }
+                contentType: "number",
+                data: { value: 0, disabled: true }
             },
             1: {
                 name: "type",
@@ -25,13 +26,13 @@ export default class OperationNode extends Node {
                 name: "x",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "number",
-                data: { value: 0 }
+                data: { value: 0, disabled: false }
             },
             3: {
                 name: "y",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "number",
-                data: { value: 0 }
+                data: { value: 0, disabled: false }
             }
         });
     }
@@ -42,9 +43,10 @@ export default class OperationNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
+    protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         const x = Number("2" in inputs ? inputs[2][0] : this.connectors[2].data.value);
         const y = Number("3" in inputs ? inputs[3][0] : this.connectors[3].data.value);
+
         let value = 0;
         switch(this.connectors[1].data.selected_index) {
             case 0:
@@ -63,6 +65,17 @@ export default class OperationNode extends Node {
                 value = isNaN(x % y) ? 0 : x % y;
                 break;
         }
+
+        setNodes(
+            nodes => produce(nodes, (draft: NodeCollection) => {
+                draft[nodeId].connectors[0].data.value = value;
+                draft[nodeId].connectors[2].data.disabled = "2" in inputs;
+                draft[nodeId].connectors[2].data.value = x;
+                draft[nodeId].connectors[3].data.disabled = "3" in inputs;
+                draft[nodeId].connectors[3].data.value = y;
+            })
+        );
+
         return { "0": value };
     }
 
