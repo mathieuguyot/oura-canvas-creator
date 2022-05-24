@@ -6,7 +6,7 @@ import produce from "immer";
 
 export default class OperationNode extends Node {
     constructor() {
-        super(NodeName.Operation, 100, {x:0, y:0}, {
+        super(NodeName.Operation, 160, {x:0, y:0}, {
             0: {
                 name: "output",
                 pinLayout: PinLayout.RIGHT_PIN,

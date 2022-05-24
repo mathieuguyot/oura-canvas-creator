@@ -10,7 +10,7 @@
     "@types/react-dom": "^17.0.0",
     "immer": "^8.0.0",
     "lodash": "^4.17.20",
-    "oura-node-editor": "^0.1.1",
+    "oura-node-editor": "^0.1.2",
     "rc-slider": "^9.7.1",
     "react": "^17.0.1",
     "react-color": "^2.19.3",

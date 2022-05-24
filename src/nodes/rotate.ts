@@ -5,7 +5,7 @@ import { NodeName } from "./consts";
 
 export default class RotateNode extends Node {
     constructor() {
-        super(NodeName.Rotate, 100, {x:0, y:0}, {
+        super(NodeName.Rotate, 150, {x:0, y:0}, {
             0: { name: "draw", pinLayout: PinLayout.BOTH_PINS, contentType: "none", data: {} },
             1: {
                 name: "angle",

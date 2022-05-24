@@ -14,7 +14,8 @@ export default class LogNode extends Node {
                 name: "log",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "none",
-                data: {}
+                data: {},
+                leftPinColor: "red"
             },
             1: {
                 name: "log",

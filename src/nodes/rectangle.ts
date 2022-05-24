@@ -6,7 +6,7 @@ import produce from "immer";
 
 export default class RectangleNode extends Node {
     constructor() {
-        super(NodeName.Rectangle, 100, {x:0, y:0}, {
+        super(NodeName.Rectangle, 150, {x:0, y:0}, {
             0: { name: "draw", pinLayout: PinLayout.RIGHT_PIN, contentType: "none", data: {} },
             1: {
                 name: "x",
@@ -31,6 +31,13 @@ export default class RectangleNode extends Node {
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "number",
                 data: { value: 100, disabled: false }
+            },
+            5: {
+                name: "color",
+                pinLayout: PinLayout.LEFT_PIN,
+                contentType: "none",
+                data: { value: "black" },
+                leftPinColor: "orange"
             }
         });
     }
@@ -46,6 +53,7 @@ export default class RectangleNode extends Node {
         const y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
         const width = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
         const height = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
+        const color = "5" in inputs ? inputs[5][0] : this.connectors[5].data.value;
 
         setNodes(
             nodes => produce(nodes, (draft: NodeCollection) => {
@@ -61,7 +69,9 @@ export default class RectangleNode extends Node {
         );
 
         const draw = (ctx: CanvasRenderingContext2D): void => {
+            ctx.fillStyle = color;
             ctx.fillRect(x, y, width, height);
+            ctx.fillStyle = "black";
         };
 
         return { "0": draw };

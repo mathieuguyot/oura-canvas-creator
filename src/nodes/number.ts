@@ -5,7 +5,7 @@ import { NodeName } from "./consts";
 
 export default class NumberNode extends Node {
     constructor() {
-        super(NodeName.Number, 100, {x:0, y:0}, {
+        super(NodeName.Number, 170, {x:0, y:0}, {
             0: {
                 name: "number",
                 pinLayout: PinLayout.RIGHT_PIN,
