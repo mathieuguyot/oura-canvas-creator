@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Node from "./node";
-import { PinLayout } from "oura-node-editor";
+import { NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
+import produce from "immer";
 
 export default class RotateNode extends Node {
     constructor() {
@@ -22,9 +23,17 @@ export default class RotateNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
+    protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         let rotation = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
         rotation = (rotation * Math.PI) / 180;
+        
+        setNodes(
+            nodes => produce(nodes, (draft: NodeCollection) => {
+                draft[nodeId].connectors[1].data.disabled = "1" in inputs;
+                draft[nodeId].connectors[1].data.value = rotation;
+            })
+        );
+        
         const drawWithRotation = (ctx: CanvasRenderingContext2D): void => {
             ctx.rotate(rotation);
             if (inputs[0]) {

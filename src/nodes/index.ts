@@ -14,6 +14,7 @@ import StringNode from "./string";
 import SplitNode from "./split";
 import OperationNode from "./operation";
 import LogNode from "./log";
+import ArcNode from "./arc";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -28,7 +29,8 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         8: new StringNode(),
         9: new SplitNode(),
         10: new OperationNode(),
-        11: new LogNode()
+        11: new LogNode(),
+        12: new ArcNode()
     };
 }
 
@@ -70,6 +72,9 @@ function createNodeFromJson(jsonObj: any) : Node {
             break;
         case NodeName.Log:
             node = LogNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Arc:
+            node = ArcNode.createFromJson(jsonObj);
             break;
     }
     if(!node) {

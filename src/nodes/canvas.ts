@@ -11,7 +11,7 @@ export default class CanvasNode extends Node {
                 name: "draw", 
                 pinLayout: PinLayout.LEFT_PIN, 
                 contentType: "canvas", 
-                data: { canvas_width: 400, canvas_height: 400 } 
+                data: { canvas_width: 400, canvas_height: 400, canvas_color: "white" } 
             },
             1: { 
                 name: "width", 
@@ -24,7 +24,14 @@ export default class CanvasNode extends Node {
                 pinLayout: PinLayout.LEFT_PIN, 
                 contentType: "number", 
                 data: { value: 400 } 
-            }
+            },
+            3: {
+                name: "color",
+                pinLayout: PinLayout.LEFT_PIN,
+                contentType: "none",
+                data: { value: "white" },
+                leftPinColor: "orange"
+            },
         });
     }
 
@@ -35,15 +42,18 @@ export default class CanvasNode extends Node {
     }
 
     protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        const width = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
-        const height = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
+        const width = Number("1" in inputs ? inputs[1][0] : this.connectors[1].data.value);
+        const height = Number("2" in inputs ? inputs[2][0] : this.connectors[2].data.value);
+        const color = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
+
         if ("canvas_ctx" in this.connectors[0].data) {
             const ctx = this.connectors[0].data.canvas_ctx;
             if("clearRect" in ctx) {
                 setNodes(
                     nodes => produce(nodes, (draft: NodeCollection) => {
-                        draft[nodeId].connectors[0].data.canvas_width = width;
-                        draft[nodeId].connectors[0].data.canvas_height = height;
+                        draft[nodeId].connectors[0].data.canvas_width = Number(width);
+                        draft[nodeId].connectors[0].data.canvas_height = Number(height);
+                        draft[nodeId].connectors[0].data.canvas_color = color;
                         draft[nodeId].connectors[1].data.disabled = "1" in inputs;
                         draft[nodeId].connectors[1].data.value = width;
                         draft[nodeId].connectors[2].data.disabled = "2" in inputs;
@@ -52,9 +62,6 @@ export default class CanvasNode extends Node {
                 );
                 ctx.canvas.width = width;
                 ctx.canvas.height = height;
-                ctx.fillStyle = "white";
-                ctx.fillRect(0, 0, width, height);
-                ctx.fillStyle = "black";
                 if (inputs[0]) {
                     inputs[0].forEach((draw: (arg0: CanvasRenderingContext2D) => void) => {
                         draw(ctx);

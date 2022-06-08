@@ -32,6 +32,12 @@ export default class ColorNode extends Node {
                 contentType: "number", 
                 data: { value: 0 } 
             },
+            4: { 
+                name: "alpha", 
+                pinLayout: PinLayout.LEFT_PIN, 
+                contentType: "number", 
+                data: { value: 1 } 
+            }
         });
     }
 
@@ -45,12 +51,14 @@ export default class ColorNode extends Node {
         let red = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
         let green = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
         let blue = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
+        let alpha = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
         
         red = red > 255 ? 255 : red < 0 ? 0 : red;
         green = green > 255 ? 255 : green < 0 ? 0 : green;
         blue = blue > 255 ? 255 : blue < 0 ? 0 : blue;
+        alpha = alpha > 1 ? 1 : alpha < 0 ? 0 : alpha;
 
-        const colorCode = `rgb(${red}, ${green}, ${blue})`;
+        const colorCode = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
         const canvas_width = this.width - 30;
         if ("canvas_ctx" in this.connectors[0].data) {
             const ctx = this.connectors[0].data.canvas_ctx;
@@ -64,6 +72,8 @@ export default class ColorNode extends Node {
                         draft[nodeId].connectors[2].data.value = green;
                         draft[nodeId].connectors[3].data.disabled = "3" in inputs;
                         draft[nodeId].connectors[3].data.value = blue;
+                        draft[nodeId].connectors[4].data.disabled = "4" in inputs;
+                        draft[nodeId].connectors[4].data.value = alpha;
                     })
                 );
                 ctx.canvas.width = canvas_width;

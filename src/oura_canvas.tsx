@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { produce } from "immer";
 import _ from "lodash";
 
@@ -183,6 +183,45 @@ const OuraCanvasApp = (): JSX.Element => {
         [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]
     );
 
+    const onSaveButton = useCallback(() => {
+        const data = {
+            "nodes": nodes,
+            "links": links
+        };
+
+        const element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(data)));
+        element.setAttribute('download', "oura-node-editor.json");
+      
+        element.style.display = 'none';
+        document.body.appendChild(element);
+      
+        element.click();
+      
+        document.body.removeChild(element);
+    }, [nodes, links]);
+
+    const onLoadButton = useCallback((evt) => {
+        if(evt.target.files.size < 1) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (file) => {
+            if(file.target && file.target.result && file.target.result) {
+                const data = JSON.parse(atob((file.target.result as string).substring(29)));
+                setNodes(data.nodes);
+                setLinks(data.links);
+            }
+        };
+        reader.readAsDataURL(evt.target.files[0]);
+    }, []);
+
+    const onResetButton = useCallback(() => {
+        setNodes({});
+        setLinks({});
+    }, []);
+
     let nodePicker = null;
     if(nodePickerPos && selectedItems.length === 0) {
         nodePicker = <div
@@ -219,6 +258,18 @@ const OuraCanvasApp = (): JSX.Element => {
             </div>
     }
 
+    const buttonStyle = {
+        font: "bold 11px Arial",
+        textDecoration: "none",
+        backgroundColor: "#EEEEEE",
+        color: "#333333",
+        padding: "2px 6px 2px 6px",
+        borderTop: "1px solid #CCCCCC",
+        borderRight: "1px solid #333333",
+        borderBottom: "1px solid #333333",
+        borderLeft: "1px solid #CCCCCC"
+    };
+
     return (
         <>
             <div
@@ -240,6 +291,10 @@ const OuraCanvasApp = (): JSX.Element => {
                 />
                 {nodePicker}
             </div>
+            <button onClick={onSaveButton} style={{position: "absolute", left: 5, bottom: 5, ...buttonStyle}}>save</button>
+            <label htmlFor="files" className="btn" style={{position: "absolute", left: 55, bottom: 5, ...buttonStyle}}>load</label>
+            <input onChange={onLoadButton} id="files" style={{visibility: "hidden"}} type="file"/>
+            <button onClick={onResetButton} style={{position: "absolute", right: 5, bottom: 5, ...buttonStyle}}>reset</button>
         </>
     );
 };

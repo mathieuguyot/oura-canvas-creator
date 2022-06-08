@@ -10,5 +10,6 @@ export enum NodeName {
     String = "string",
     Split = "split",
     Operation = "operation",
-    Log = "log"
+    Log = "log",
+    Arc = "arc"
 }

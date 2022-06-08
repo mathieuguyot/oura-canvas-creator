@@ -18,7 +18,7 @@ export default class OperationNode extends Node {
                 pinLayout: PinLayout.NO_PINS,
                 contentType: "select",
                 data: { 
-                    values: ["add", "substract", "multiply", "divide", "modulo"],
+                    values: ["add", "substract", "multiply", "divide", "modulo", "minimum", "maximum", "exp", "log", "log10", "negate"],
                     selected_index: 0
                 }
             },
@@ -63,6 +63,24 @@ export default class OperationNode extends Node {
                 break;
             case 4:
                 value = isNaN(x % y) ? 0 : x % y;
+                break;
+            case 5:
+                value = x > y ? y : x;
+                break;
+            case 6:
+                value = x > y ? x : y;
+                break;
+            case 7:
+                value = Math.pow(x, y);
+                break;
+            case 8:
+                value = Math.log(x);
+                break;
+            case 9:
+                value = Math.log10(x);
+                break;
+            case 10:
+                value = -x;
                 break;
         }
 

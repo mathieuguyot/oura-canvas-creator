@@ -4,9 +4,9 @@ import { NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
 import produce from "immer";
 
-export default class RectangleNode extends Node {
+export default class ArcNode extends Node {
     constructor() {
-        super(NodeName.Rectangle, 200, {x:0, y:0}, {
+        super(NodeName.Arc, 200, {x:0, y:0}, {
             0: { name: "draw", pinLayout: PinLayout.RIGHT_PIN, contentType: "none", data: {} },
             1: {
                 name: "x",
@@ -21,44 +21,56 @@ export default class RectangleNode extends Node {
                 data: { value: 0, disabled: false }
             },
             3: {
-                name: "width",
+                name: "radius",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "number",
                 data: { value: 100, disabled: false }
             },
             4: {
-                name: "height",
+                name: "start angle",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "number",
-                data: { value: 100, disabled: false }
+                data: { value: 0, disabled: false }
             },
             5: {
+                name: "end angle",
+                pinLayout: PinLayout.LEFT_PIN,
+                contentType: "number",
+                data: { value: 2 * Math.PI, disabled: false }
+            },
+            6: {
                 name: "color",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "none",
                 data: { value: "black" },
                 leftPinColor: "orange"
             },
-            6: {
+            7: {
                 name: "type",
                 pinLayout: PinLayout.NO_PINS,
                 contentType: "select",
                 data: { 
-                    values: ["fill", "stroke", "clear"],
+                    values: ["fill", "stroke"],
                     selected_index: 0
                 }
             },
-            7: {
+            8: {
                 name: "line width",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "number",
                 data: { value: 1, disabled: false }
             },
+            9: {
+                name: "counterclockwise",
+                pinLayout: PinLayout.LEFT_PIN,
+                contentType: "check_box",
+                data: { value: false }
+            },
         });
     }
 
-    static createFromJson(jsonObj: any) : RectangleNode {
-        let node = new RectangleNode();
+    static createFromJson(jsonObj: any) : ArcNode {
+        let node = new ArcNode();
         Node.initFromJson(jsonObj, node);
         return node;
     }
@@ -66,10 +78,12 @@ export default class RectangleNode extends Node {
     protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         const x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
         const y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
-        const width = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
-        const height = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
-        const color = "5" in inputs ? inputs[5][0] : this.connectors[5].data.value;
-        const lineWidth = "7" in inputs ? inputs[7][0] : this.connectors[7].data.value;
+        const radius = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
+        const start_angle = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
+        const end_angle = "5" in inputs ? inputs[5][0] : this.connectors[5].data.value;
+        const color = "6" in inputs ? inputs[6][0] : this.connectors[6].data.value;
+        const lineWidth = "8" in inputs ? inputs[8][0] : this.connectors[8].data.value;
+        const counterclockwise = "9" in inputs ? inputs[9][0] : this.connectors[9].data.value;
 
         setNodes(
             nodes => produce(nodes, (draft: NodeCollection) => {
@@ -78,32 +92,33 @@ export default class RectangleNode extends Node {
                 draft[nodeId].connectors[2].data.disabled = "2" in inputs;
                 draft[nodeId].connectors[2].data.value = y;
                 draft[nodeId].connectors[3].data.disabled = "3" in inputs;
-                draft[nodeId].connectors[3].data.value = width;
+                draft[nodeId].connectors[3].data.value = radius;
                 draft[nodeId].connectors[4].data.disabled = "4" in inputs;
-                draft[nodeId].connectors[4].data.value = height;
-                draft[nodeId].connectors[7].data.disabled = "7" in inputs;
-                draft[nodeId].connectors[7].data.value = lineWidth;
+                draft[nodeId].connectors[4].data.value = start_angle;
+                draft[nodeId].connectors[5].data.disabled = "5" in inputs;
+                draft[nodeId].connectors[5].data.value = end_angle;
+                draft[nodeId].connectors[8].data.disabled = "8" in inputs;
+                draft[nodeId].connectors[8].data.value = lineWidth;
             })
         );
 
-        const type = this.connectors[6].data.selected_index;
+        const type = this.connectors[7].data.selected_index;
         const draw = (ctx: CanvasRenderingContext2D): void => {
             if(type === 0) {
                 ctx.fillStyle = color;
-                ctx.fillRect(x, y, width, height);
+                ctx.arc(x, y, radius, start_angle, end_angle, counterclockwise);
+                ctx.fill();
                 ctx.fillStyle = "black";
             }
             else if(type === 1) {
                 ctx.strokeStyle = color;
                 const oldLineWidth = ctx.lineWidth;
                 ctx.lineWidth = lineWidth;
-                ctx.strokeRect(x, y, width, height);
+                ctx.arc(x, y, radius, start_angle, end_angle, counterclockwise);
+                ctx.stroke();
                 ctx.lineWidth = oldLineWidth;
                 ctx.strokeStyle = "black";
             }
-            else if(type === 2) {
-                ctx.clearRect(x, y, width, height);
-            } 
         };
 
         return { "0": draw };

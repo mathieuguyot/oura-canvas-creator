@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Node from "./node";
-import { PinLayout } from "oura-node-editor";
+import { NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
+import produce from "immer";
 
 export default class TranslateNode extends Node {
     constructor() {
@@ -28,9 +29,19 @@ export default class TranslateNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
+    protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         let x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
         let y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
+        
+        setNodes(
+            nodes => produce(nodes, (draft: NodeCollection) => {
+                draft[nodeId].connectors[1].data.disabled = "1" in inputs;
+                draft[nodeId].connectors[1].data.value = x;
+                draft[nodeId].connectors[2].data.disabled = "2" in inputs;
+                draft[nodeId].connectors[2].data.value = y;
+            })
+        );
+
         const drawWithTranslate = (ctx: CanvasRenderingContext2D): void => {
             ctx.translate(x, y);
             if (inputs[0]) {

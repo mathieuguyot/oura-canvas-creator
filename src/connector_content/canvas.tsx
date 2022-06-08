@@ -19,7 +19,10 @@ const Canvas = (props : ConnectorContentProps): JSX.Element => {
     }, [canvasRef, props]);
 
     return (
-        <canvas style={{border: "1px solid black"}} width={props.connector.data.canvas_width} height={props.connector.data.canvas_height} ref={canvasRef}/>
+        <>
+            <div style={{position: "absolute", zIndex: 0.1, backgroundColor: props.connector.data.canvas_color, width: props.connector.data.canvas_width, height: props.connector.data.canvas_height}}></div>
+            <canvas style={{position: "relative", imageRendering: "auto"}} width={props.connector.data.canvas_width} height={props.connector.data.canvas_height} ref={canvasRef}/>
+        </>
     );
 };
 
