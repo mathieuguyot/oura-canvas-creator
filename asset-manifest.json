@@ -1,23 +1,23 @@
 {
   "files": {
     "main.css": "/oura-canvas-creator/static/css/main.6dea0f05.chunk.css",
-    "main.js": "/oura-canvas-creator/static/js/main.d6e9c939.chunk.js",
-    "main.js.map": "/oura-canvas-creator/static/js/main.d6e9c939.chunk.js.map",
+    "main.js": "/oura-canvas-creator/static/js/main.3fa524f8.chunk.js",
+    "main.js.map": "/oura-canvas-creator/static/js/main.3fa524f8.chunk.js.map",
     "runtime-main.js": "/oura-canvas-creator/static/js/runtime-main.170c30b6.js",
     "runtime-main.js.map": "/oura-canvas-creator/static/js/runtime-main.170c30b6.js.map",
     "static/css/2.4a35ef0a.chunk.css": "/oura-canvas-creator/static/css/2.4a35ef0a.chunk.css",
-    "static/js/2.306c8207.chunk.js": "/oura-canvas-creator/static/js/2.306c8207.chunk.js",
-    "static/js/2.306c8207.chunk.js.map": "/oura-canvas-creator/static/js/2.306c8207.chunk.js.map",
+    "static/js/2.8f4b3735.chunk.js": "/oura-canvas-creator/static/js/2.8f4b3735.chunk.js",
+    "static/js/2.8f4b3735.chunk.js.map": "/oura-canvas-creator/static/js/2.8f4b3735.chunk.js.map",
     "index.html": "/oura-canvas-creator/index.html",
     "static/css/2.4a35ef0a.chunk.css.map": "/oura-canvas-creator/static/css/2.4a35ef0a.chunk.css.map",
     "static/css/main.6dea0f05.chunk.css.map": "/oura-canvas-creator/static/css/main.6dea0f05.chunk.css.map",
-    "static/js/2.306c8207.chunk.js.LICENSE.txt": "/oura-canvas-creator/static/js/2.306c8207.chunk.js.LICENSE.txt"
+    "static/js/2.8f4b3735.chunk.js.LICENSE.txt": "/oura-canvas-creator/static/js/2.8f4b3735.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.170c30b6.js",
     "static/css/2.4a35ef0a.chunk.css",
-    "static/js/2.306c8207.chunk.js",
+    "static/js/2.8f4b3735.chunk.js",
     "static/css/main.6dea0f05.chunk.css",
-    "static/js/main.d6e9c939.chunk.js"
+    "static/js/main.3fa524f8.chunk.js"
   ]
 }
