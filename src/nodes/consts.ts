@@ -11,5 +11,7 @@ export enum NodeName {
     Split = "split",
     Operation = "operation",
     Log = "log",
-    Arc = "arc"
+    Arc = "arc",
+    Check = "check",
+    Boolean = "boolean"
 }

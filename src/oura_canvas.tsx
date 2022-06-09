@@ -282,6 +282,12 @@ const OuraCanvasApp = (): JSX.Element => {
                     nodes={nodes}
                     links={links}
                     selectedItems={selectedItems}
+                    customElements={{/*"i": {
+                        data: "test",
+                        name: "ce1",
+                        position: {x: 0, y: 0},
+                        type: "comment"
+                    }*/}}
                     onPanZoomInfo={setPanZoomInfo}
                     onSelectedItems={setSelectedItems}
                     onNodeMove={onNodeMove}

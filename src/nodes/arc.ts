@@ -106,7 +106,9 @@ export default class ArcNode extends Node {
         const draw = (ctx: CanvasRenderingContext2D): void => {
             if(type === 0) {
                 ctx.fillStyle = color;
+                ctx.beginPath();
                 ctx.arc(x, y, radius, start_angle, end_angle, counterclockwise);
+                ctx.closePath();
                 ctx.fill();
                 ctx.fillStyle = "black";
             }
@@ -114,7 +116,9 @@ export default class ArcNode extends Node {
                 ctx.strokeStyle = color;
                 const oldLineWidth = ctx.lineWidth;
                 ctx.lineWidth = lineWidth;
+                ctx.beginPath();
                 ctx.arc(x, y, radius, start_angle, end_angle, counterclockwise);
+                ctx.closePath();
                 ctx.stroke();
                 ctx.lineWidth = oldLineWidth;
                 ctx.strokeStyle = "black";

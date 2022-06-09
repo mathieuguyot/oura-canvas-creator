@@ -15,6 +15,8 @@ import SplitNode from "./split";
 import OperationNode from "./operation";
 import LogNode from "./log";
 import ArcNode from "./arc";
+import CheckNode from "./check";
+import BooleanNode from "./boolean";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -30,7 +32,9 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         9: new SplitNode(),
         10: new OperationNode(),
         11: new LogNode(),
-        12: new ArcNode()
+        12: new ArcNode(),
+        13: new CheckNode(),
+        14: new BooleanNode()
     };
 }
 
@@ -75,6 +79,12 @@ function createNodeFromJson(jsonObj: any) : Node {
             break;
         case NodeName.Arc:
             node = ArcNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Check:
+            node = CheckNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Boolean:
+            node = BooleanNode.createFromJson(jsonObj);
             break;
     }
     if(!node) {
