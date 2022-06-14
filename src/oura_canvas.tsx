@@ -46,6 +46,24 @@ const OuraCanvasApp = (): JSX.Element => {
 
     const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema();
 
+    const setSelectedItemsAndMoveSelectedNodeFront = useCallback((selection: SelectionItem[]) => {
+        if(selection.length === 1 && selection[0].type === "node") {
+            setNodes(
+                (nodes: NodeCollection) => {
+                    const selectedNodeId = selection[0].id;
+                    const newNodes: NodeCollection = {};
+                    Object.keys(nodes).forEach(key => {
+                        if(key !== selectedNodeId) {
+                            newNodes[key] = nodes[key];
+                        }
+                    });
+                    newNodes[selectedNodeId] = nodes[selectedNodeId];
+                    return newNodes;
+            })
+        }
+        setSelectedItems(selection);
+    }, [])
+
     // Redraw canvas effect
     React.useEffect(() => {
         Object.keys(nodes).forEach((key) => {
@@ -289,7 +307,7 @@ const OuraCanvasApp = (): JSX.Element => {
                         type: "comment"
                     }*/}}
                     onPanZoomInfo={setPanZoomInfo}
-                    onSelectedItems={setSelectedItems}
+                    onSelectedItems={setSelectedItemsAndMoveSelectedNodeFront}
                     onNodeMove={onNodeMove}
                     onCreateLink={onCreateLink}
                     onConnectorUpdate={onConnectorUpdate}
