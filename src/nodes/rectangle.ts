@@ -63,7 +63,7 @@ export default class RectangleNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
+    computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         const x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
         const y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
         const width = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;

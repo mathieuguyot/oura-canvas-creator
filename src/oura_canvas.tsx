@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { produce } from "immer";
-import _ from "lodash";
+import _, { values } from "lodash";
 
 import {
     NodeEditor,
@@ -16,13 +16,14 @@ import {
     AddNodeContextualMenu,
     SelectionManagementContextualMenu
 } from "oura-node-editor";
-import { createNodeFromJson, createNodeSchema, Node } from "./nodes";
-import CanvasNode from "./nodes/canvas";
+import { createNodeFromJson, createNodeSchema } from "./nodes";
 import { createCustomConnectorsContents } from "./connector_content";
-import LogNode from "./nodes/log";
-// import { dumbLinkCreator, dumbNodeCreator } from "./debug";
+import { propagateAll, propagateNode } from "./nodes/node";
+
+let propagationValues: { [id: string]: any } = {};
 
 const OuraCanvasApp = (): JSX.Element => {
+
     const [nodePickerPos, setNodePickerPos] = React.useState<XYPosition | null>(null);
     const [nodePickerOnMouseHover, setNodePickerOnMouseHover] = React.useState<boolean>(false);
     const [panZoomInfo, setPanZoomInfo] = React.useState<PanZoomModel>({
@@ -32,6 +33,7 @@ const OuraCanvasApp = (): JSX.Element => {
     const [selectedItems, setSelectedItems] = React.useState<SelectionItem[]>([]);
     const locallyStoredNodes = localStorage.getItem("nodes");
     const locallyStoredLinks = localStorage.getItem("links");
+    //TODO parsed each timme.... remove this
     const initNodes: NodeCollection = locallyStoredNodes ? JSON.parse(locallyStoredNodes) : {};
     const initLinks: LinkCollection = locallyStoredLinks ? JSON.parse(locallyStoredLinks) : {};
     if(locallyStoredNodes) {
@@ -64,19 +66,10 @@ const OuraCanvasApp = (): JSX.Element => {
         setSelectedItems(selection);
     }, [])
 
-    // Redraw canvas effect
     React.useEffect(() => {
-        Object.keys(nodes).forEach((key) => {
-            const node = nodes[key];
-            if (node instanceof CanvasNode || node instanceof LogNode) {
-                try {
-                    (node as Node).compute(nodes, links, setNodes);
-                } catch(e: any) {
-                    console.error(e);
-                }
-            }
-        });
-    }, [nodes, links]);
+        propagateAll(propagationValues, nodes, links, values);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     React.useEffect(() => {
         const interval = setInterval(() => {
@@ -91,6 +84,7 @@ const OuraCanvasApp = (): JSX.Element => {
             });
             if(updated) {
                 setNodes(newNodes);
+                propagateAll(propagationValues, nodes, links, setNodes);
             }
         }, 1000 / 60);
         return () => clearInterval(interval);
@@ -114,7 +108,11 @@ const OuraCanvasApp = (): JSX.Element => {
                     draft[generateUuid()] = link;
                 })
             );
-        }, []
+            const newLinks = produce(links, (draft) => {
+                draft[generateUuid()] = link;
+            });
+            propagateNode(link.inputNodeId, propagationValues, nodes, newLinks, setNodes);
+        }, [links, nodes]
     );
 
     const onDeleteSelection = React.useCallback(
@@ -141,8 +139,31 @@ const OuraCanvasApp = (): JSX.Element => {
                     });
                 })
             );
+
+            const newNodes = produce(nodes, (draft: NodeCollection) => {
+                deleteNodeIds.forEach((id) => {
+                    delete draft[id];
+                });
+            });
+            const newLinks = produce(links, (draft: LinkCollection) => {
+                Object.keys(links).forEach(linkKey => {
+                    const link = links[linkKey];
+                    if (deleteNodeIds.includes(link.inputNodeId) || deleteNodeIds.includes(link.outputNodeId)) {
+                        delete draft[linkKey];
+                    }
+                });
+                deletedLinksIds.forEach((id) => {
+                    delete draft[id];
+                });
+            });
+            Object.keys(propagationValues).forEach(key => {
+                if(!(key in newLinks)) {
+                    delete propagationValues[key];
+                }
+            })
+            propagateAll(propagationValues, newNodes, newLinks, setNodes);
         },
-        [selectedItems]
+        [selectedItems, nodes, links]
     );
 
     const onNodeSelection = React.useCallback(
@@ -161,6 +182,7 @@ const OuraCanvasApp = (): JSX.Element => {
                         draft[generateUuid()] = newNode;
                     })
                 );
+                //TODO: propagate on creation
                 setNodePickerOnMouseHover(false);
                 setNodePickerPos(null);
             }
@@ -175,7 +197,11 @@ const OuraCanvasApp = (): JSX.Element => {
                     draft[nodeId].connectors[cId] = connector;
                 })
             );
-        }, []
+            const newNodes = produce(nodes, (draft) => {
+                draft[nodeId].connectors[cId] = connector;
+            });
+            propagateNode(nodeId, propagationValues, newNodes, links, setNodes);
+        }, [nodes, links]
     );
 
     const onContextMenu = React.useCallback(
@@ -220,6 +246,7 @@ const OuraCanvasApp = (): JSX.Element => {
     }, [nodes, links]);
 
     const onLoadButton = useCallback((evt) => {
+        propagationValues = {};
         if(evt.target.files.size < 1) {
             return;
         }
@@ -228,14 +255,19 @@ const OuraCanvasApp = (): JSX.Element => {
         reader.onload = (file) => {
             if(file.target && file.target.result && file.target.result) {
                 const data = JSON.parse(atob((file.target.result as string).substring(29)));
+                Object.keys(data.nodes).forEach((key) => {
+                    data.nodes[key] = createNodeFromJson(data.nodes[key]);
+                });
                 setNodes(data.nodes);
                 setLinks(data.links);
+                propagateAll(propagationValues, data.nodes, data.links, setNodes);
             }
         };
         reader.readAsDataURL(evt.target.files[0]);
     }, []);
 
     const onResetButton = useCallback(() => {
+        propagationValues = {};
         setNodes({});
         setLinks({});
     }, []);

@@ -17,7 +17,7 @@ export default class TimerNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
+    computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
         return { "0": this.connectors[0].data.value };
     }
 }

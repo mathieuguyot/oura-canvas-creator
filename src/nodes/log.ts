@@ -43,7 +43,7 @@ export default class LogNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
+    computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         if(inputs[0] && !_.isEqual(inputs[0], this.inputs)) {
             setNodes(
                 nodes => produce(nodes, (draft: NodeCollection) => {

@@ -29,7 +29,7 @@ export default class TranslateNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
+    computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         let x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
         let y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
         

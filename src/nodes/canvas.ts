@@ -41,34 +41,33 @@ export default class CanvasNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
+    computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         const width = Number("1" in inputs ? inputs[1][0] : this.connectors[1].data.value);
         const height = Number("2" in inputs ? inputs[2][0] : this.connectors[2].data.value);
         const color = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
 
-        if ("canvas_ctx" in this.connectors[0].data) {
-            const ctx = this.connectors[0].data.canvas_ctx;
-            if("clearRect" in ctx) {
-                setNodes(
-                    nodes => produce(nodes, (draft: NodeCollection) => {
-                        draft[nodeId].connectors[0].data.canvas_width = Number(width);
-                        draft[nodeId].connectors[0].data.canvas_height = Number(height);
-                        draft[nodeId].connectors[0].data.canvas_color = color;
-                        draft[nodeId].connectors[1].data.disabled = "1" in inputs;
-                        draft[nodeId].connectors[1].data.value = width;
-                        draft[nodeId].connectors[2].data.disabled = "2" in inputs;
-                        draft[nodeId].connectors[2].data.value = height;
-                    })
-                );
-                ctx.canvas.width = width;
-                ctx.canvas.height = height;
-                if (inputs[0]) {
-                    inputs[0].forEach((draw: (arg0: CanvasRenderingContext2D) => void) => {
-                        draw(ctx);
-                    });
-                }
+        const draw = (ctx: CanvasRenderingContext2D) => {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            if (inputs[0]) {
+                inputs[0].forEach((draw: (arg0: CanvasRenderingContext2D) => void) => {
+                    draw(ctx);
+                });  
             }
         }
+
+        setNodes(
+            nodes => produce(nodes, (draft: NodeCollection) => {
+                draft[nodeId].connectors[0].data.canvas_width = Number(width);
+                draft[nodeId].connectors[0].data.canvas_height = Number(height);
+                draft[nodeId].connectors[0].data.canvas_color = color;
+                draft[nodeId].connectors[0].data.canvas_draw = draw;
+                draft[nodeId].connectors[1].data.disabled = "1" in inputs;
+                draft[nodeId].connectors[1].data.value = width;
+                draft[nodeId].connectors[2].data.disabled = "2" in inputs;
+                draft[nodeId].connectors[2].data.value = height;
+            })
+        );
+
         return {};
     }
 }

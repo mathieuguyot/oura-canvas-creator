@@ -39,7 +39,7 @@ export default class IfElseNode extends Node {
         return node;
     }
 
-    protected computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
+    computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
         const cond = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value; 
         const if_value = "2" in inputs ? inputs[2][0] : null;
         const else_value = "3" in inputs ? inputs[3][0] : null;
