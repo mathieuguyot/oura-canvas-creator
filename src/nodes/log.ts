@@ -27,6 +27,7 @@ export default class LogNode extends Node {
             },
         });
         this.inputs = [];
+        this.log = this.log.bind(this);
         this.connectors[1].data.onClick = this.log
     }
 

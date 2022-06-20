@@ -17,6 +17,7 @@ import LogNode from "./log";
 import ArcNode from "./arc";
 import CheckNode from "./check";
 import BooleanNode from "./boolean";
+import { FunctionInputNode, FunctionOutputNode } from "./function";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -34,7 +35,9 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         11: new LogNode(),
         12: new ArcNode(),
         13: new CheckNode(),
-        14: new BooleanNode()
+        14: new BooleanNode(),
+        15: new FunctionInputNode(),
+        16: new FunctionOutputNode()
     };
 }
 
@@ -85,6 +88,12 @@ function createNodeFromJson(jsonObj: any) : Node {
             break;
         case NodeName.Boolean:
             node = BooleanNode.createFromJson(jsonObj);
+            break;
+        case NodeName.FunctionInputNode:
+            node = FunctionInputNode.createFromJson(jsonObj);
+            break;
+        case NodeName.FunctionOutputNode:
+            node = FunctionOutputNode.createFromJson(jsonObj);
             break;
     }
     if(!node) {

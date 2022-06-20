@@ -73,15 +73,7 @@ function propagateFromList(propagationList: string[], propagationValues: { [id: 
 export function propagateAll(propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): void {
     const propagationDict: { [id: string]: number } = {};
     Object.keys(nodes).forEach(nodeId => {
-        let hasLinks = false;
-        Object.keys(links).forEach(linkId => {
-            if(links[linkId].inputNodeId === nodeId || links[linkId].outputNodeId === nodeId) {
-                hasLinks = true;
-            }
-        });
-        if(hasLinks) {
-            createPropagationTree(nodeId, links, 0, propagationDict);
-        }
+        createPropagationTree(nodeId, links, 0, propagationDict);
     });
     const propagationList = propagationDictToOrderedList(propagationDict);
     propagateFromList(propagationList, propagationValues, nodes, links, setNodes);

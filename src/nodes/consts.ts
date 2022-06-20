@@ -13,5 +13,7 @@ export enum NodeName {
     Log = "log",
     Arc = "arc",
     Check = "check",
-    Boolean = "boolean"
+    Boolean = "boolean",
+    FunctionInputNode = "function-inputs",
+    FunctionOutputNode = "function-outputs"
 }

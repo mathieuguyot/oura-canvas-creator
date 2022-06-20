@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { produce } from "immer";
-import _, { values } from "lodash";
+import _ from "lodash";
 
 import {
     NodeEditor,
@@ -66,10 +66,13 @@ const OuraCanvasApp = (): JSX.Element => {
         setSelectedItems(selection);
     }, [])
 
+    const [init, setInit] = React.useState(false);
     React.useEffect(() => {
-        propagateAll(propagationValues, nodes, links, values);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        if(!init) {
+            setInit(true);
+            propagateAll(propagationValues, nodes, links, setNodes);
+        }
+    }, [init, links, nodes]);
 
     React.useEffect(() => {
         const interval = setInterval(() => {
@@ -332,12 +335,6 @@ const OuraCanvasApp = (): JSX.Element => {
                     nodes={nodes}
                     links={links}
                     selectedItems={selectedItems}
-                    customElements={{/*"i": {
-                        data: "test",
-                        name: "ce1",
-                        position: {x: 0, y: 0},
-                        type: "comment"
-                    }*/}}
                     onPanZoomInfo={setPanZoomInfo}
                     onSelectedItems={setSelectedItemsAndMoveSelectedNodeFront}
                     onNodeMove={onNodeMove}
