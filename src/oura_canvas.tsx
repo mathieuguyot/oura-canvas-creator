@@ -10,20 +10,25 @@ import {
     ConnectorModel,
     NodeCollection,
     LinkCollection,
-    NodeModel,
     XYPosition,
     SelectionItem,
     AddNodeContextualMenu,
     SelectionManagementContextualMenu
 } from "oura-node-editor";
-import { createNodeFromJson, createNodeSchema } from "./nodes";
+import { createNodeFromJson } from "./nodes";
 import { createCustomConnectorsContents } from "./connector_content";
-import { propagateAll, propagateNode } from "./nodes/node";
+import { propagateAll, propagateNode, UserNode } from "./nodes/node";
+import NodeCreator from "./node-creator/node_creator";
 
 let propagationValues: { [id: string]: any } = {};
 
 const OuraCanvasApp = (): JSX.Element => {
-
+    // Load user nodes
+    const userNodesSchema = localStorage.getItem("nodes-schema");
+    const userNodeSchema = userNodesSchema ? JSON.parse(userNodesSchema) : {};
+    const [userNodes, setUserNodes] = React.useState<{[key: string]: UserNode}>(userNodeSchema);
+    localStorage.setItem("nodes-schema", JSON.stringify(userNodes));
+    
     const [nodePickerPos, setNodePickerPos] = React.useState<XYPosition | null>(null);
     const [nodePickerOnMouseHover, setNodePickerOnMouseHover] = React.useState<boolean>(false);
     const [panZoomInfo, setPanZoomInfo] = React.useState<PanZoomModel>({
@@ -46,7 +51,7 @@ const OuraCanvasApp = (): JSX.Element => {
     localStorage.setItem("nodes", JSON.stringify(nodes));
     localStorage.setItem("links", JSON.stringify(links));
 
-    const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema();
+    //const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema();
 
     const setSelectedItemsAndMoveSelectedNodeFront = useCallback((selection: SelectionItem[]) => {
         if(selection.length === 1 && selection[0].type === "node") {
@@ -174,7 +179,9 @@ const OuraCanvasApp = (): JSX.Element => {
             if (nodePickerPos) {
                 setNodes(
                     nodes => produce(nodes, (draft) => {
-                        const newNode = _.clone(nodesSchemas[id]);
+                        const schema = _.clone(userNodes[id]);
+                        const newNode = new UserNode(schema.name, schema.width, schema.position, schema.connectors);
+                        newNode.code = schema.code;
                         const newX =
                             -panZoomInfo.topLeftCorner.x / panZoomInfo.zoom +
                             nodePickerPos.x / panZoomInfo.zoom;
@@ -190,7 +197,7 @@ const OuraCanvasApp = (): JSX.Element => {
                 setNodePickerPos(null);
             }
         },
-        [panZoomInfo, nodePickerPos, nodesSchemas]
+        [panZoomInfo, nodePickerPos, userNodes]
     );
 
     const onConnectorUpdate = React.useCallback(
@@ -287,7 +294,7 @@ const OuraCanvasApp = (): JSX.Element => {
                     backgroundColor: "white"
                 }}>
                 <AddNodeContextualMenu 
-                    nodesSchema={nodesSchemas}
+                    nodesSchema={userNodes}
                     onNodeSelection={onNodeSelection}
                     onMouseHover={setNodePickerOnMouseHover}
                     createCustomConnectorComponent={createCustomConnectorsContents}
@@ -325,6 +332,7 @@ const OuraCanvasApp = (): JSX.Element => {
 
     return (
         <>
+            <NodeCreator nodes={userNodes} setNodes={setUserNodes} />
             <div
                 style={{ width: "100%", height: "100%" }}
                 onContextMenu={onContextMenu}

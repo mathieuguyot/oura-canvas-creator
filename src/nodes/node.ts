@@ -7,6 +7,7 @@ import {
     NodeModel,
     XYPosition
 } from "oura-node-editor";
+import { Dispatch, SetStateAction } from "react";
 
 function getOutputLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
@@ -98,6 +99,7 @@ export default abstract class Node implements NodeModel {
         this.width = width;
         this.position = position;
         this.connectors = connectors;
+        
     }
 
     static initFromJson(jsonObj: any, node: Node) {
@@ -105,7 +107,32 @@ export default abstract class Node implements NodeModel {
         node.width = jsonObj.width;
         node.position = jsonObj.position;
         node.connectors = jsonObj.connectors;
+        
     }
 
     abstract computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any };
+}
+
+export class UserNode extends Node {
+    public code: string;
+    
+    constructor(name: string, width: number, position: XYPosition, connectors: ConnectorCollection) {
+        super(name, width, position, connectors);    
+        this.code = `(function main(inputs, nodeId, setNodes) {\n\tconsole.log(this);\n\treturn {"test": 10};\n});`;
+    }
+
+    static createFromJson(jsonObj: any) : UserNode {
+        let node = new UserNode("", 100, {x: 0, y: 0}, {});
+        Node.initFromJson(jsonObj, node);
+        node.code = jsonObj.code;
+        return node;
+    }
+
+    async computeSpecific(inputs: { [id: string]: any; }, nodeId: string, setNodes: Dispatch<SetStateAction<NodeCollection>>): Promise<{ [id: string]: any; }> {
+        let res = {};
+        // https://stackoverflow.com/questions/63459014/data-uri-imports-in-typescript
+        import(`data:text/javascript;charset=utf-8;base64,${btoa(this.code)}`);
+        //await import(dataUri).then(ns => res = ns.main(inputs, nodeId, setNodes));
+        return res; // todo raise error
+    }
 }

@@ -1,13 +1,12 @@
 import { NodeModel } from "oura-node-editor";
 
-import Node from "./node";
+import Node, { UserNode } from "./node";
 import CanvasNode from "./canvas";
 import RectangleNode from "./rectangle";
 import RotateNode from "./rotate";
 import NumberNode from "./number";
 import ColorNode from "./color";
 import TimerNode from "./timer";
-import { NodeName } from "./consts";
 import TranslateNode from "./translate";
 import IfElseNode from "./if_else";
 import StringNode from "./string";
@@ -42,8 +41,8 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
 }
 
 function createNodeFromJson(jsonObj: any) : Node {
-    let node: Node | undefined = undefined;
-    switch(jsonObj.name) {
+    //let node: Node | undefined = undefined;
+    /*switch(jsonObj.name) {
         case NodeName.Canvas:
             node = CanvasNode.createFromJson(jsonObj);
             break;
@@ -98,8 +97,9 @@ function createNodeFromJson(jsonObj: any) : Node {
     }
     if(!node) {
         throw new Error("Error while reading node from json"); 
-    }
-    return node;
+    }*/
+    //return node;
+    return UserNode.createFromJson(jsonObj);
 }
 
 export { Node, CanvasNode, createNodeSchema, createNodeFromJson };
