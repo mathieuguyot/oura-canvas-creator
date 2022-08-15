@@ -18,6 +18,7 @@ import ArcNode from "./arc";
 import CheckNode from "./check";
 import BooleanNode from "./boolean";
 import { FunctionInputNode, FunctionOutputNode } from "./function";
+import ThreeJS from "./threejs";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -37,7 +38,8 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         13: new CheckNode(),
         14: new BooleanNode(),
         15: new FunctionInputNode(),
-        16: new FunctionOutputNode()
+        16: new FunctionOutputNode(),
+        17: new ThreeJS()
     };
 }
 
@@ -94,6 +96,9 @@ function createNodeFromJson(jsonObj: any) : Node {
             break;
         case NodeName.FunctionOutputNode:
             node = FunctionOutputNode.createFromJson(jsonObj);
+            break;
+        case NodeName.ThreeJS:
+            node = ThreeJS.createFromJson(jsonObj);
             break;
     }
     if(!node) {
