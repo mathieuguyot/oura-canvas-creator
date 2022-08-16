@@ -16,5 +16,6 @@ export enum NodeName {
     Boolean = "boolean",
     FunctionInputNode = "function-inputs",
     FunctionOutputNode = "function-outputs",
-    ThreeJS = "threejs"
+    ThreeJS = "threejs",
+    ThreeJSBox = "threejs-box"
 }

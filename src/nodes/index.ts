@@ -19,6 +19,7 @@ import CheckNode from "./check";
 import BooleanNode from "./boolean";
 import { FunctionInputNode, FunctionOutputNode } from "./function";
 import ThreeJS from "./threejs";
+import ThreeJSBox from "./threejs_box";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -39,7 +40,8 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         14: new BooleanNode(),
         15: new FunctionInputNode(),
         16: new FunctionOutputNode(),
-        17: new ThreeJS()
+        17: new ThreeJS(),
+        18: new ThreeJSBox()
     };
 }
 
@@ -99,6 +101,9 @@ function createNodeFromJson(jsonObj: any) : Node {
             break;
         case NodeName.ThreeJS:
             node = ThreeJS.createFromJson(jsonObj);
+            break;
+        case NodeName.ThreeJSBox:
+            node = ThreeJSBox.createFromJson(jsonObj);
             break;
     }
     if(!node) {
