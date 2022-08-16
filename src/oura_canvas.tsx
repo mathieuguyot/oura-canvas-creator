@@ -1,6 +1,5 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { produce } from "immer";
-import _ from "lodash";
 
 import {
     NodeEditor,
@@ -31,20 +30,33 @@ const OuraCanvasApp = (): JSX.Element => {
         topLeftCorner: { x: 0, y: 0 }
     });
     const [selectedItems, setSelectedItems] = React.useState<SelectionItem[]>([]);
-    const locallyStoredNodes = localStorage.getItem("nodes");
-    const locallyStoredLinks = localStorage.getItem("links");
-    //TODO parsed each timme.... remove this
-    const initNodes: NodeCollection = locallyStoredNodes ? JSON.parse(locallyStoredNodes) : {};
-    const initLinks: LinkCollection = locallyStoredLinks ? JSON.parse(locallyStoredLinks) : {};
-    if(locallyStoredNodes) {
-        Object.keys(initNodes).forEach((key) => {
-            initNodes[key] = createNodeFromJson(initNodes[key]);
-        });
-    }
-    const [nodes, setNodes] = React.useState<NodeCollection>(initNodes);
-    const [links, setLinks] = React.useState<LinkCollection>(initLinks);
-    localStorage.setItem("nodes", JSON.stringify(nodes));
-    localStorage.setItem("links", JSON.stringify(links));
+    const [nodes, setNodes] = React.useState<NodeCollection>({});
+    const [links, setLinks] = React.useState<LinkCollection>({});
+
+    useEffect(() => {
+        const locallyStoredNodes = localStorage.getItem("nodes");
+        const locallyStoredLinks = localStorage.getItem("links");
+        const initNodes: NodeCollection = locallyStoredNodes ? JSON.parse(locallyStoredNodes) : {};
+        const initLinks: LinkCollection = locallyStoredLinks ? JSON.parse(locallyStoredLinks) : {};
+        if(locallyStoredNodes) {
+            Object.keys(initNodes).forEach((key) => {
+                initNodes[key] = createNodeFromJson(initNodes[key], key, setNodes);
+            });
+        }
+        setLinks(initLinks);
+        setNodes(initNodes);
+    }, []);
+
+    useEffect(() => {
+        if(Object.keys(nodes).length > 0) {
+            localStorage.setItem("nodes", JSON.stringify(nodes));
+        }
+    }, [nodes]);
+    useEffect(() => {
+        if(Object.keys(links).length > 0) {
+            localStorage.setItem("links", JSON.stringify(links));
+        }
+    }, [links]);
 
     const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema();
 
@@ -64,7 +76,7 @@ const OuraCanvasApp = (): JSX.Element => {
             })
         }
         setSelectedItems(selection);
-    }, [])
+    }, []);
 
     const [init, setInit] = React.useState(false);
     React.useEffect(() => {
@@ -169,12 +181,21 @@ const OuraCanvasApp = (): JSX.Element => {
         [selectedItems, nodes, links]
     );
 
+    const [newNodeId, setNewNodeId] = useState<string | undefined>(undefined);
+    useEffect(() => {
+        if(newNodeId) {
+            propagateNode(newNodeId, propagationValues, nodes, links, setNodes)
+            setNewNodeId(undefined);
+        }
+    }, [newNodeId, nodes, links]);
     const onNodeSelection = React.useCallback(
         (id: string) => {
             if (nodePickerPos) {
+                const newNodeId = generateUuid();
                 setNodes(
                     nodes => produce(nodes, (draft) => {
-                        const newNode = _.clone(nodesSchemas[id]);
+                        const jsonObj = JSON.parse(JSON.stringify(nodesSchemas[id]));
+                        const newNode = createNodeFromJson(jsonObj, newNodeId, setNodes);
                         const newX =
                             -panZoomInfo.topLeftCorner.x / panZoomInfo.zoom +
                             nodePickerPos.x / panZoomInfo.zoom;
@@ -182,10 +203,10 @@ const OuraCanvasApp = (): JSX.Element => {
                             -panZoomInfo.topLeftCorner.y / panZoomInfo.zoom +
                             nodePickerPos.y / panZoomInfo.zoom;
                         newNode.position = { x: newX, y: newY };
-                        draft[generateUuid()] = newNode;
+                        draft[newNodeId] = newNode;
                     })
                 );
-                //TODO: propagate on creation
+                setNewNodeId(newNodeId);
                 setNodePickerOnMouseHover(false);
                 setNodePickerPos(null);
             }
@@ -259,7 +280,7 @@ const OuraCanvasApp = (): JSX.Element => {
             if(file.target && file.target.result && file.target.result) {
                 const data = JSON.parse(atob((file.target.result as string).substring(29)));
                 Object.keys(data.nodes).forEach((key) => {
-                    data.nodes[key] = createNodeFromJson(data.nodes[key]);
+                    data.nodes[key] = createNodeFromJson(data.nodes[key], key, setNodes);
                 });
                 setNodes(data.nodes);
                 setLinks(data.links);

@@ -1,4 +1,4 @@
-import { NodeModel } from "oura-node-editor";
+import { NodeCollection, NodeModel } from "oura-node-editor";
 
 import Node from "./node";
 import CanvasNode from "./canvas";
@@ -45,7 +45,7 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
     };
 }
 
-function createNodeFromJson(jsonObj: any) : Node {
+function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>) : Node {
     let node: Node | undefined = undefined;
     switch(jsonObj.name) {
         case NodeName.Canvas:
@@ -94,7 +94,7 @@ function createNodeFromJson(jsonObj: any) : Node {
             node = BooleanNode.createFromJson(jsonObj);
             break;
         case NodeName.FunctionInputNode:
-            node = FunctionInputNode.createFromJson(jsonObj);
+            node = FunctionInputNode.createFromJson(jsonObj, nodeId, setNodes);
             break;
         case NodeName.FunctionOutputNode:
             node = FunctionOutputNode.createFromJson(jsonObj);

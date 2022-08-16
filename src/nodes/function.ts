@@ -5,8 +5,8 @@ import { NodeName } from "./consts";
 import produce from "immer";
 
 export class FunctionInputNode extends Node {
-    protected nodeId ?: string;
-    protected setNodes ?: React.Dispatch<React.SetStateAction<NodeCollection>>;
+    public nodeId ?: string;
+    public setNodes ?: React.Dispatch<React.SetStateAction<NodeCollection>>;
     constructor() {
         super(NodeName.FunctionInputNode, 150, {x:0, y:0}, {
             0: { 
@@ -46,7 +46,7 @@ export class FunctionInputNode extends Node {
                     if(this.nodeId) {
                         draft[this.nodeId].connectors[Object.keys(node.connectors).length] = {
                             name: `param-${Object.keys(node.connectors).length-2}`,
-                            pinLayout: PinLayout.NO_PINS,
+                            pinLayout: PinLayout.RIGHT_PIN,
                             contentType: "string",
                             data: { 
                                 value: `param-${Object.keys(node.connectors).length-2}`
@@ -64,18 +64,18 @@ export class FunctionInputNode extends Node {
         }
     }
 
-    static createFromJson(jsonObj: any) : FunctionInputNode {
+    static createFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>) : FunctionInputNode {
         let node = new FunctionInputNode();
         Node.initFromJson(jsonObj, node);
+        node.nodeId = nodeId;
+        node.setNodes = setNodes;
         node.connectors[1].data.onClick = node.add.bind(node);
         node.connectors[2].data.onClick = node.remove.bind(node);
         return node;
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        this.nodeId = nodeId;
-        this.setNodes = setNodes;
-        return {  };
+        return {};
     }
 }
 
