@@ -17,7 +17,7 @@ import LogNode from "./log";
 import ArcNode from "./arc";
 import CheckNode from "./check";
 import BooleanNode from "./boolean";
-import { FunctionInputNode, FunctionOutputNode } from "./function";
+import { FunctionCallNode, FunctionInputNode, FunctionOutputNode } from "./function";
 import ThreeJS from "./threejs";
 import ThreeJSBox from "./threejs_box";
 
@@ -40,8 +40,9 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         14: new BooleanNode(),
         15: new FunctionInputNode(),
         16: new FunctionOutputNode(),
-        17: new ThreeJS(),
-        18: new ThreeJSBox()
+        17: new FunctionCallNode(),
+        18: new ThreeJS(),
+        19: new ThreeJSBox()
     };
 }
 
@@ -98,6 +99,9 @@ function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispat
             break;
         case NodeName.FunctionOutputNode:
             node = FunctionOutputNode.createFromJson(jsonObj);
+            break;
+        case NodeName.FunctionCallNode:
+            node = FunctionCallNode.createFromJson(jsonObj);
             break;
         case NodeName.ThreeJS:
             node = ThreeJS.createFromJson(jsonObj);

@@ -15,7 +15,7 @@ export default class SplitNode extends Node {
             1: {
                 name: "input",
                 pinLayout: PinLayout.LEFT_PIN,
-                contentType: "string",
+                contentType: "text_area",
                 data: { value: "" }
             },
             2: {

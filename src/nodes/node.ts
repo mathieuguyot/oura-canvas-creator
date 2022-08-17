@@ -7,6 +7,7 @@ import {
     NodeModel,
     XYPosition
 } from "oura-node-editor";
+import { NodeName } from "./consts";
 
 function getOutputLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
@@ -45,7 +46,7 @@ function createPropagationTree(nodeId: string, links: LinkCollection, depth: num
     });
 }
 
-function propagateFromList(propagationList: string[], propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): void {
+function propagateFromList(propagationList: string[], propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): void {
     propagationList.forEach(propagingNodeId => {
         const node = nodes[propagingNodeId] as Node;
         // Preparing inputs of current propagation
@@ -61,7 +62,7 @@ function propagateFromList(propagationList: string[], propagationValues: { [id: 
             inputValues[links[linkId].outputPinId].push(propagationValues[linkId]);
         });
         // Executing
-        const outputValues = node.computeSpecific(inputValues, propagingNodeId, setNodes);
+        const outputValues = node.computeSpecific(node.name === NodeName.FunctionInputNode ? fIns : inputValues, propagingNodeId, setNodes, nodes, links);
         // Adding values to propagationValues
         const ouputsLinks = getOutputLinks(propagingNodeId, links);
         Object.keys(ouputsLinks).forEach((linkId) => {
@@ -76,14 +77,34 @@ export function propagateAll(propagationValues: { [id: string]: any }, nodes: No
         createPropagationTree(nodeId, links, 0, propagationDict);
     });
     const propagationList = propagationDictToOrderedList(propagationDict);
-    propagateFromList(propagationList, propagationValues, nodes, links, setNodes);
+    propagateFromList(propagationList, propagationValues, nodes, links, setNodes, {});
 }
 
 export function propagateNode(nodeId: string, propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): void {
     const propagationDict: { [id: string]: number } = {};
     createPropagationTree(nodeId, links, 0, propagationDict);
     const propagationList = propagationDictToOrderedList(propagationDict);
-    propagateFromList(propagationList, propagationValues, nodes, links, setNodes);
+    propagateFromList(propagationList, propagationValues, nodes, links, setNodes, {});
+}
+
+export function propateFunction(nodeId: string, propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): any {
+    const propagationDict: { [id: string]: number } = {};
+    createPropagationTree(nodeId, links, 0, propagationDict);
+    const propagationList = propagationDictToOrderedList(propagationDict);
+    const fOutId = propagationList[propagationList.length - 1]
+    propagateFromList(propagationList, propagationValues, nodes, links, setNodes, fIns);
+
+    // Return result
+    let linkKey = "";
+    const link = Object.keys(propagationValues).find((key) => {
+        const link = links[key];
+        linkKey = key;
+        return link.outputNodeId === fOutId && link.outputPinId === "1";
+    });
+    if(link && linkKey in propagationValues) {
+        return propagationValues[linkKey];
+    }
+    return undefined;
 }
 
 export default abstract class Node implements NodeModel {
@@ -107,5 +128,5 @@ export default abstract class Node implements NodeModel {
         node.connectors = jsonObj.connectors;
     }
 
-    abstract computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any };
+    abstract computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection): { [id: string]: any };
 }

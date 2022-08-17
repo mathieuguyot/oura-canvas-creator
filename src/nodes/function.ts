@@ -1,8 +1,89 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Node from "./node";
-import { NodeCollection, PinLayout } from "oura-node-editor";
+import Node, { propateFunction } from "./node";
+import { LinkCollection, NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
 import produce from "immer";
+import { Dispatch, SetStateAction } from "react";
+
+export class FunctionCallNode extends Node {
+    
+    constructor() {
+        super(NodeName.FunctionCallNode, 150, {x:0, y:0}, {
+            0: { 
+                name: "function_name", 
+                pinLayout: PinLayout.NO_PINS, 
+                contentType: "string", 
+                data: { value: ""},
+            },
+            1: { 
+                name: "output", 
+                pinLayout: PinLayout.RIGHT_PIN, 
+                contentType: "none", 
+                data: {},
+            }
+        });
+    }
+    
+    static createFromJson(jsonObj: any) : FunctionCallNode {
+        let node = new FunctionCallNode();
+        Node.initFromJson(jsonObj, node);
+        return node;
+    }
+
+    computeSpecific(inputs: { [id: string]: any; }, nodeId: string, setNodes: Dispatch<SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection): { [id: string]: any; } {
+        // 1. Fetch function node
+        const functionName = this.connectors[0].data.value;
+        const expectedConnectors: string[] = [];
+        let finNodeId: string = "";
+        Object.keys(nodes).forEach(nodeKey => {
+            const node = nodes[nodeKey];
+            if(node.name === NodeName.FunctionInputNode && node.connectors[0].data.value === functionName) {
+                finNodeId = nodeKey;
+                Object.keys(node.connectors).forEach(key => {
+                    if(Number(key) > 2 && node) {
+                        expectedConnectors.push(node.connectors[key].name);
+                    }
+                });
+            }
+        });
+
+        setNodes(
+            nodes => produce(nodes, (draft: NodeCollection) => {
+                if(nodeId) {
+                    Object.keys(draft[nodeId].connectors).forEach((key) => {
+                        if(Number(key) > 1) {
+                            delete draft[nodeId].connectors[key];
+                        }
+                    });
+                    expectedConnectors.forEach((value, i) => {
+                        draft[nodeId].connectors[i+2] = {
+                            name: value,
+                            pinLayout: PinLayout.LEFT_PIN,
+                            contentType: "none",
+                            data: {}
+                        }
+                    });
+                }
+            })
+        );
+
+        let fIns: any = {};
+        expectedConnectors.forEach((_, i) => {
+            if((i+2) in inputs) {
+                fIns[`${i+3}`] = inputs[`${i+2}`];
+            }
+        });
+
+        if(finNodeId.length > 0) {
+            let propagationValues: { [id: string]: any } = {};
+            const res = propateFunction(finNodeId, propagationValues, nodes, links, setNodes, fIns);
+            return {"1": res};
+        }
+        
+        return {};
+    }
+
+}
 
 export class FunctionInputNode extends Node {
     public nodeId ?: string;
@@ -10,11 +91,10 @@ export class FunctionInputNode extends Node {
     constructor() {
         super(NodeName.FunctionInputNode, 150, {x:0, y:0}, {
             0: { 
-                name: "func-out", 
+                name: "name", 
                 pinLayout: PinLayout.RIGHT_PIN, 
-                contentType: "none", 
-                data: { },
-                rightPinColor: "orange"
+                contentType: "string", 
+                data: { value: "" },
             },
             1: {
                 name: "add",
@@ -35,8 +115,8 @@ export class FunctionInputNode extends Node {
         });
         this.add = this.add.bind(this);
         this.remove = this.remove.bind(this);
-        this.connectors[1].data.onClick = this.add
-        this.connectors[2].data.onClick = this.remove
+        this.connectors[1].data.onClick = this.add;
+        this.connectors[2].data.onClick = this.remove;
     }
 
     add(node: Node) {
@@ -75,7 +155,7 @@ export class FunctionInputNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        return {};
+        return inputs;
     }
 }
 
@@ -83,7 +163,14 @@ export class FunctionOutputNode extends Node {
     constructor() {
         super(NodeName.FunctionOutputNode, 150, {x:0, y:0}, {
             0: { 
-                name: "func-in", 
+                name: "function", 
+                pinLayout: PinLayout.LEFT_PIN, 
+                contentType: "none", 
+                data: { },
+                rightPinColor: "orange"
+            },
+            1: { 
+                name: "return", 
                 pinLayout: PinLayout.LEFT_PIN, 
                 contentType: "none", 
                 data: { },
@@ -92,8 +179,8 @@ export class FunctionOutputNode extends Node {
         });
     }
 
-    static createFromJson(jsonObj: any) : FunctionInputNode {
-        let node = new FunctionInputNode();
+    static createFromJson(jsonObj: any) : FunctionOutputNode {
+        let node = new FunctionOutputNode();
         Node.initFromJson(jsonObj, node);
         return node;
     }
