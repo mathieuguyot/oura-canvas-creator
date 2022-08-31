@@ -11,7 +11,8 @@ export default class CanvasNode extends Node {
                 name: "draw", 
                 pinLayout: PinLayout.LEFT_PIN, 
                 contentType: "canvas", 
-                data: { canvas_width: 400, canvas_height: 400, canvas_color: "white" } 
+                data: { canvas_width: 400, canvas_height: 400, canvas_color: "white" },
+                isMultiInputAllowed: true
             },
             1: { 
                 name: "width", 
@@ -42,9 +43,9 @@ export default class CanvasNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        const width = Number("1" in inputs ? inputs[1][0] : this.connectors[1].data.value);
-        const height = Number("2" in inputs ? inputs[2][0] : this.connectors[2].data.value);
-        const color = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
+        const width = Number("1" in inputs ? inputs[1] : this.connectors[1].data.value);
+        const height = Number("2" in inputs ? inputs[2] : this.connectors[2].data.value);
+        const color = "3" in inputs ? inputs[3] : this.connectors[3].data.value;
 
         const draw = (ctx: CanvasRenderingContext2D) => {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);

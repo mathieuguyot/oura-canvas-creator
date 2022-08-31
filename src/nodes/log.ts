@@ -28,7 +28,7 @@ export default class LogNode extends Node {
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
         setNodes(
             nodes => produce(nodes, (draft: NodeCollection) => {
-                draft[nodeId].connectors[0].data.value = inputs[0] ? JSON.stringify(inputs[0][0]) : "";
+                draft[nodeId].connectors[0].data.value = "0" in inputs ? JSON.stringify(inputs[0]) : "";
             })
         );
         return {};

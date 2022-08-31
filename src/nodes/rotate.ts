@@ -24,7 +24,7 @@ export default class RotateNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        let rotation = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
+        let rotation = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
         rotation = (rotation * Math.PI) / 180;
         
         setNodes(

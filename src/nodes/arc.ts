@@ -76,14 +76,14 @@ export default class ArcNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        const x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
-        const y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
-        const radius = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
-        const start_angle = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
-        const end_angle = "5" in inputs ? inputs[5][0] : this.connectors[5].data.value;
-        const color = "6" in inputs ? inputs[6][0] : this.connectors[6].data.value;
-        const lineWidth = "8" in inputs ? inputs[8][0] : this.connectors[8].data.value;
-        const counterclockwise = "9" in inputs ? inputs[9][0] : this.connectors[9].data.value;
+        const x = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
+        const y = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
+        const radius = "3" in inputs ? inputs[3] : this.connectors[3].data.value;
+        const start_angle = "4" in inputs ? inputs[4] : this.connectors[4].data.value;
+        const end_angle = "5" in inputs ? inputs[5] : this.connectors[5].data.value;
+        const color = "6" in inputs ? inputs[6] : this.connectors[6].data.value;
+        const lineWidth = "8" in inputs ? inputs[8] : this.connectors[8].data.value;
+        const counterclockwise = "9" in inputs ? inputs[9] : this.connectors[9].data.value;
 
         setNodes(
             nodes => produce(nodes, (draft: NodeCollection) => {

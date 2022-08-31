@@ -63,7 +63,7 @@ export class FunctionCallNode extends Node {
                             data: {}
                         }
                     });
-                }
+                }   
             })
         );
 
@@ -75,14 +75,12 @@ export class FunctionCallNode extends Node {
         });
 
         if(finNodeId.length > 0) {
-            let propagationValues: { [id: string]: any } = {};
-            const res = propateFunction(finNodeId, propagationValues, nodes, links, setNodes, fIns);
+            const res = propateFunction(finNodeId, nodes, links, setNodes, fIns);
             return {"1": res};
         }
         
         return {};
     }
-
 }
 
 export class FunctionInputNode extends Node {
@@ -128,7 +126,7 @@ export class FunctionInputNode extends Node {
                             name: `param-${Object.keys(node.connectors).length-2}`,
                             pinLayout: PinLayout.RIGHT_PIN,
                             contentType: "string",
-                            data: { 
+                            data: {
                                 value: `param-${Object.keys(node.connectors).length-2}`
                             }
                         }
@@ -186,6 +184,6 @@ export class FunctionOutputNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        return {  };
+        return { };
     }
 }

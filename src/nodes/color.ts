@@ -48,10 +48,10 @@ export default class ColorNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        let red = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
-        let green = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
-        let blue = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
-        let alpha = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
+        let red = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
+        let green = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
+        let blue = "3" in inputs ? inputs[3] : this.connectors[3].data.value;
+        let alpha = "4" in inputs ? inputs[4] : this.connectors[4].data.value;
         
         red = red > 255 ? 255 : red < 0 ? 0 : red;
         green = green > 255 ? 255 : green < 0 ? 0 : green;

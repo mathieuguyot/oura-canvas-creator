@@ -55,10 +55,10 @@ export default class ThreeJSBox extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
-        const rotation_x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
-        const rotation_y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
-        const rotation_z = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
-        const color = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
+        const rotation_x = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
+        const rotation_y = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
+        const rotation_z = "3" in inputs ? inputs[3] : this.connectors[3].data.value;
+        const color = "4" in inputs ? inputs[4] : this.connectors[4].data.value;
 
         this.cube.material.color.setStyle(color);
         this.cube.rotation.set(rotation_x, rotation_y, rotation_z);

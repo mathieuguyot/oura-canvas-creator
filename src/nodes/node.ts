@@ -13,7 +13,7 @@ function getOutputLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
     Object.keys(links).forEach((linkKey) => {
         const link = links[linkKey];
-        if(link.inputNodeId === nodeId) {
+        if(link.outputNodeId === nodeId) {
             linkOutputs[linkKey] = links[linkKey];
         }
     });
@@ -24,7 +24,7 @@ function getInputsLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
     Object.keys(links).forEach((linkKey) => {
         const link = links[linkKey];
-        if(link.outputNodeId === nodeId) {
+        if(link.inputNodeId === nodeId) {
             linkOutputs[linkKey] = links[linkKey];
         }
     });
@@ -42,31 +42,46 @@ function createPropagationTree(nodeId: string, links: LinkCollection, depth: num
     propagationDict[nodeId] = nodeId in propagationDict ? Math.max(depth, propagationDict[nodeId]) : depth;
     const outputLinks = getOutputLinks(nodeId, links);
     Object.keys(outputLinks).forEach(linkKey => {
-        createPropagationTree(links[linkKey].outputNodeId, links, depth + 1, propagationDict);
+        createPropagationTree(links[linkKey].inputNodeId, links, depth + 1, propagationDict);
     });
 }
 
-function propagateFromList(propagationList: string[], propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): void {
+function debugLinkConnection(lc: LinkCollection, nodes: NodeCollection) {
+   const s = Object.keys(lc).map(k => debugLink(k, nodes, lc));
+   s.forEach(s => console.log(s));
+}
+
+function debugLink(linkId: string, nodes: NodeCollection, links: LinkCollection): string {
+    const link = links[linkId];
+    return `${nodes[link.outputNodeId].name}.${link.outputPinId} -> ${nodes[link.inputNodeId].name}.${link.inputPinId}`
+}
+
+function propagateFromList(propagationList: string[], propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): void {
     propagationList.forEach(propagingNodeId => {
         const node = nodes[propagingNodeId] as Node;
         // Preparing inputs of current propagation
         const inputLinks = getInputsLinks(propagingNodeId, links);
         const inputValues: { [id: string]: any } = {};
         Object.keys(inputLinks).forEach((linkId) => {
-            if(!propagationValues[linkId]) {
+            if(!(linkId in propagationValues)) {
                 return;
             }
-            if(!(links[linkId].outputPinId in inputValues)) {
-                inputValues[links[linkId].outputPinId] = [];
+            const pinId = links[linkId].inputPinId;
+            if(node.connectors[pinId].isMultiInputAllowed) {
+                if(!(pinId in inputValues)){
+                    inputValues[pinId] = [];
+                }
+                inputValues[pinId].push(propagationValues[linkId]);
+            } else {
+                inputValues[pinId] = propagationValues[linkId];
             }
-            inputValues[links[linkId].outputPinId].push(propagationValues[linkId]);
         });
         // Executing
-        const outputValues = node.computeSpecific(node.name === NodeName.FunctionInputNode ? fIns : inputValues, propagingNodeId, setNodes, nodes, links);
+        const outputValues = node.computeSpecific(inputValues, propagingNodeId, setNodes, nodes, links);
         // Adding values to propagationValues
         const ouputsLinks = getOutputLinks(propagingNodeId, links);
         Object.keys(ouputsLinks).forEach((linkId) => {
-            propagationValues[linkId] = outputValues[links[linkId].inputPinId];
+            propagationValues[linkId] = outputValues[links[linkId].outputPinId];
         });
     });
 }
@@ -77,32 +92,114 @@ export function propagateAll(propagationValues: { [id: string]: any }, nodes: No
         createPropagationTree(nodeId, links, 0, propagationDict);
     });
     const propagationList = propagationDictToOrderedList(propagationDict);
-    propagateFromList(propagationList, propagationValues, nodes, links, setNodes, {});
+    propagateFromList(propagationList, propagationValues, nodes, links, setNodes);
 }
 
 export function propagateNode(nodeId: string, propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): void {
     const propagationDict: { [id: string]: number } = {};
     createPropagationTree(nodeId, links, 0, propagationDict);
     const propagationList = propagationDictToOrderedList(propagationDict);
-    propagateFromList(propagationList, propagationValues, nodes, links, setNodes, {});
+
+    let fOutGuard = false;
+    propagationList.forEach(k => {
+        if(nodes[k].name === NodeName.FunctionOutputNode) {
+            fOutGuard = true;
+        }
+    });
+    if(fOutGuard) {
+        console.log("fout guard");
+        return;
+    }
+    propagateFromList(propagationList, propagationValues, nodes, links, setNodes);
 }
 
-export function propateFunction(nodeId: string, propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): any {
-    const propagationDict: { [id: string]: number } = {};
-    createPropagationTree(nodeId, links, 0, propagationDict);
-    const propagationList = propagationDictToOrderedList(propagationDict);
-    const fOutId = propagationList[propagationList.length - 1]
-    propagateFromList(propagationList, propagationValues, nodes, links, setNodes, fIns);
+export function backPropagateFunctionNodes(alreadyComputedNodes: string[], nodeId: string,  propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): any {
+    if(alreadyComputedNodes.includes(nodeId)) {
+        return;
+    }
 
-    // Return result
-    let linkKey = "";
-    const link = Object.keys(propagationValues).find((key) => {
-        const link = links[key];
-        linkKey = key;
-        return link.outputNodeId === fOutId && link.outputPinId === "1";
+    const node = nodes[nodeId] as Node;
+    const outputsLinks = getInputsLinks(nodeId, links);
+    const outputsNodes = Object.keys(outputsLinks).map(k => {
+        return links[k].outputNodeId;
     });
-    if(link && linkKey in propagationValues) {
-        return propagationValues[linkKey];
+
+    // Computing output dep
+    if(node.name === NodeName.IfElse) {
+        // First compute condition
+        let ifLinkId = "";
+        Object.keys(outputsLinks).forEach(k => {
+            if (links[k].inputPinId === "1") {
+                ifLinkId = k;
+                backPropagateFunctionNodes(alreadyComputedNodes, links[k].outputNodeId, propagationValues, nodes, links, setNodes, fIns);
+            }
+        });
+        const res = propagationValues[ifLinkId] as boolean;
+        Object.keys(outputsLinks).forEach(k => {
+            if ((links[k].inputPinId === "2" && res) || (links[k].inputPinId === "3" && !res)) {
+                backPropagateFunctionNodes(alreadyComputedNodes, links[k].outputNodeId, propagationValues, nodes, links, setNodes, fIns);
+            }
+        });
+    } else if(node.name === NodeName.FunctionOutputNode) {
+        Object.keys(outputsLinks).forEach(k => {
+            if (links[k].inputPinId === "0") {
+                backPropagateFunctionNodes(alreadyComputedNodes, links[k].outputNodeId, propagationValues, nodes, links, setNodes, fIns);
+            }
+        });
+        outputsNodes.forEach(depNodeId => backPropagateFunctionNodes(alreadyComputedNodes, depNodeId, propagationValues, nodes, links, setNodes, fIns));
+    } else {
+        outputsNodes.forEach(depNodeId => backPropagateFunctionNodes(alreadyComputedNodes, depNodeId, propagationValues, nodes, links, setNodes, fIns));
+    }
+    
+    // Preparing inputs of current propagation
+    const inputLinks = getInputsLinks(nodeId, links);
+    const inputValues: { [id: string]: any } = {};
+    Object.keys(inputLinks).forEach((linkId) => {
+        if(!(linkId in propagationValues)) {
+            return;
+        }
+        const pinId = links[linkId].inputPinId;
+        if(node.connectors[pinId].isMultiInputAllowed) {
+            if(!(pinId in inputValues)){
+                inputValues[pinId] = [];
+            }
+            inputValues[pinId].push(propagationValues[linkId]);
+        } else {
+            inputValues[pinId] = propagationValues[linkId];
+        }
+    });
+    // Computing current node
+    const outputValues = node.computeSpecific(node.name === NodeName.FunctionInputNode ? fIns :  inputValues, nodeId, setNodes, nodes, links);
+    // Adding values to propagationValues
+    const ouputsLinks = getOutputLinks(nodeId, links);
+    Object.keys(ouputsLinks).forEach((linkId) => {
+        propagationValues[linkId] = outputValues[links[linkId].outputPinId];
+    });
+    alreadyComputedNodes.push(nodeId);
+}
+
+export function propateFunction(nodeId: string, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): any {
+    const propagationValues: { [id: string]: any } = {};
+    // 1. search output node
+    const fLinkId = Object.keys(links).find((key) => {
+        const link = links[key];
+        return link.outputNodeId === nodeId && link.outputPinId === "0";
+    });
+    if(!fLinkId) {
+        console.log("no node id");
+        return;
+    }
+    
+    const fOutId = links[fLinkId].inputNodeId;
+    backPropagateFunctionNodes([], fOutId, propagationValues, nodes, links, setNodes, fIns);
+    
+    // Return result
+    const fLinkResId = Object.keys(links).find((key) => {
+        const link = links[key];
+        return link.inputNodeId === fOutId && link.inputPinId === "1";
+    });
+    if(fLinkResId && fLinkResId in propagationValues) {
+        return propagationValues[fLinkResId]
     }
     return undefined;
 }

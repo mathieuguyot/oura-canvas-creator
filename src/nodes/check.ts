@@ -44,8 +44,8 @@ export default class CheckNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        const x = Number("2" in inputs ? inputs[2][0] : this.connectors[2].data.value);
-        const y = Number("3" in inputs ? inputs[3][0] : this.connectors[3].data.value);
+        const x = Number("2" in inputs ? inputs[2] : this.connectors[2].data.value);
+        const y = Number("3" in inputs ? inputs[3] : this.connectors[3].data.value);
 
         let value = false;
         switch(this.connectors[1].data.selected_index) {

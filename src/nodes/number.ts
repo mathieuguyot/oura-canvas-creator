@@ -22,6 +22,6 @@ export default class NumberNode extends Node {
     }
 
     computeSpecific(): { [id: string]: any } {
-        return { "0": this.connectors[0].data.value };
+        return { "0": Number(this.connectors[0].data.value) };
     }
 }

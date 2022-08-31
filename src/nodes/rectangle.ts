@@ -64,12 +64,12 @@ export default class RectangleNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        const x = "1" in inputs ? inputs[1][0] : this.connectors[1].data.value;
-        const y = "2" in inputs ? inputs[2][0] : this.connectors[2].data.value;
-        const width = "3" in inputs ? inputs[3][0] : this.connectors[3].data.value;
-        const height = "4" in inputs ? inputs[4][0] : this.connectors[4].data.value;
-        const color = "5" in inputs ? inputs[5][0] : this.connectors[5].data.value;
-        const lineWidth = "7" in inputs ? inputs[7][0] : this.connectors[7].data.value;
+        const x = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
+        const y = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
+        const width = "3" in inputs ? inputs[3] : this.connectors[3].data.value;
+        const height = "4" in inputs ? inputs[4] : this.connectors[4].data.value;
+        const color = "5" in inputs ? inputs[5] : this.connectors[5].data.value;
+        const lineWidth = "7" in inputs ? inputs[7] : this.connectors[7].data.value;
 
         setNodes(
             nodes => produce(nodes, (draft: NodeCollection) => {
