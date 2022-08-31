@@ -20,6 +20,8 @@ import BooleanNode from "./boolean";
 import { FunctionCallNode, FunctionInputNode, FunctionOutputNode } from "./function";
 import ThreeJS from "./threejs";
 import ThreeJSBox from "./threejs_box";
+import ArrayNode from "./array";
+import { MapNode } from "./map";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -42,7 +44,9 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         16: new FunctionOutputNode(),
         17: new FunctionCallNode(),
         18: new ThreeJS(),
-        19: new ThreeJSBox()
+        19: new ThreeJSBox(),
+        20: new ArrayNode(),
+        21: new MapNode()
     };
 }
 
@@ -108,6 +112,12 @@ function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispat
             break;
         case NodeName.ThreeJSBox:
             node = ThreeJSBox.createFromJson(jsonObj);
+            break;
+        case NodeName.Array:
+            node = ArrayNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Map:
+            node = MapNode.createFromJson(jsonObj);
             break;
     }
     if(!node) {

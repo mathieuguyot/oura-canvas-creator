@@ -50,8 +50,13 @@ export default class CanvasNode extends Node {
         const draw = (ctx: CanvasRenderingContext2D) => {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             if (inputs[0]) {
-                inputs[0].forEach((draw: (arg0: CanvasRenderingContext2D) => void) => {
-                    draw(ctx);
+                inputs[0].forEach((e: any) => {
+                    if(Array.isArray(e)) {
+                        e.forEach(ee => ee(ctx));
+                    } else {
+                        e(ctx);
+                    }
+                    
                 });  
             }
         }
