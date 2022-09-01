@@ -19,6 +19,6 @@ export enum NodeName {
     FunctionCallNode = "function-call",
     ThreeJS = "threejs",
     ThreeJSBox = "threejs-box",
-    Array = "array",
+    Range = "range",
     Map = "map"
 }

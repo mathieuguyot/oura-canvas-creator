@@ -2,7 +2,6 @@
 import Node, { propateFunction } from "./node";
 import { LinkCollection, NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
-import produce from "immer";
 import { Dispatch, SetStateAction } from "react";
 
 export class MapNode extends Node {
@@ -39,7 +38,6 @@ export class MapNode extends Node {
     computeSpecific(inputs: { [id: string]: any; }, nodeId: string, setNodes: Dispatch<SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection): { [id: string]: any; } {
         // 1. Fetch function node
         const functionName = this.connectors[2].data.value;
-        const expectedConnectors: string[] = [];
         let finNodeId: string = "";
         Object.keys(nodes).forEach(nodeKey => {
             const node = nodes[nodeKey];

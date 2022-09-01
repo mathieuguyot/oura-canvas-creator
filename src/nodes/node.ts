@@ -46,16 +46,6 @@ function createPropagationTree(nodeId: string, links: LinkCollection, depth: num
     });
 }
 
-function debugLinkConnection(lc: LinkCollection, nodes: NodeCollection) {
-   const s = Object.keys(lc).map(k => debugLink(k, nodes, lc));
-   s.forEach(s => console.log(s));
-}
-
-function debugLink(linkId: string, nodes: NodeCollection, links: LinkCollection): string {
-    const link = links[linkId];
-    return `${nodes[link.outputNodeId].name}.${link.outputPinId} -> ${nodes[link.inputNodeId].name}.${link.inputPinId}`
-}
-
 function propagateFromList(propagationList: string[], propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): void {
     propagationList.forEach(propagingNodeId => {
         const node = nodes[propagingNodeId] as Node;
@@ -100,14 +90,34 @@ export function propagateNode(nodeId: string, propagationValues: { [id: string]:
     createPropagationTree(nodeId, links, 0, propagationDict);
     const propagationList = propagationDictToOrderedList(propagationDict);
 
-    let fOutGuard = false;
+    let fOutId = "";
     propagationList.forEach(k => {
         if(nodes[k].name === NodeName.FunctionOutputNode) {
-            fOutGuard = true;
+            fOutId = k;
         }
     });
-    if(fOutGuard) {
-        console.log("fout guard");
+    if(fOutId !== "") {
+        const fOutIdLinks = getInputsLinks(fOutId, links);
+        let fInId = "";
+        Object.keys(fOutIdLinks).forEach(k => {
+            if(links[k].inputPinId === "0") {
+                fInId = links[k].outputNodeId;
+            }
+        });
+        const fIn = nodes[fInId];
+        if(fIn.name === NodeName.FunctionInputNode) {
+            const funName = fIn.connectors["0"].data.value;
+            const functionCallersNodeIds: string[] = [];
+            Object.keys(nodes).forEach(k => {
+                if(nodes[k].name === NodeName.FunctionCallNode && nodes[k].connectors["0"].data.value === funName) {
+                    functionCallersNodeIds.push(k);
+                }
+                if(nodes[k].name === NodeName.Map && nodes[k].connectors["2"].data.value === funName) {
+                    functionCallersNodeIds.push(k);
+                }
+            });
+            functionCallersNodeIds.forEach(k => propagateNode(k, propagationValues, nodes, links, setNodes));
+        }
         return;
     }
     propagateFromList(propagationList, propagationValues, nodes, links, setNodes);

@@ -33,6 +33,7 @@ const OuraCanvasApp = (): JSX.Element => {
     const [nodes, setNodes] = React.useState<NodeCollection>({});
     const [links, setLinks] = React.useState<LinkCollection>({});
 
+    const [runFirstPropagation, setRunFirstPropagation] = React.useState(false);
     useEffect(() => {
         const locallyStoredNodes = localStorage.getItem("nodes");
         const locallyStoredLinks = localStorage.getItem("links");
@@ -45,7 +46,15 @@ const OuraCanvasApp = (): JSX.Element => {
         }
         setLinks(initLinks);
         setNodes(initNodes);
+        setRunFirstPropagation(true);
     }, []);
+
+    React.useEffect(() => {
+        if(runFirstPropagation) {
+            setRunFirstPropagation(false);
+            propagateAll(propagationValues, nodes, links, setNodes);
+        }
+    }, [runFirstPropagation, links, nodes]);
 
     useEffect(() => {
         if(Object.keys(nodes).length > 0) {
@@ -77,14 +86,6 @@ const OuraCanvasApp = (): JSX.Element => {
         }
         setSelectedItems(selection);
     }, []);
-
-    const [init, setInit] = React.useState(false);
-    React.useEffect(() => {
-        if(!init) {
-            setInit(true);
-            propagateAll(propagationValues, nodes, links, setNodes);
-        }
-    }, [init, links, nodes]);
 
     React.useEffect(() => {
         const interval = setInterval(() => {
@@ -126,7 +127,7 @@ const OuraCanvasApp = (): JSX.Element => {
             const newLinks = produce(links, (draft) => {
                 draft[generateUuid()] = link;
             });
-            propagateNode(link.inputNodeId, propagationValues, nodes, newLinks, setNodes);
+            propagateNode(link.outputNodeId, propagationValues, nodes, newLinks, setNodes);
         }, [links, nodes]
     );
 
@@ -160,10 +161,14 @@ const OuraCanvasApp = (): JSX.Element => {
                     delete draft[id];
                 });
             });
+            const nodeIdToRecompute: string[] = [];
             const newLinks = produce(links, (draft: LinkCollection) => {
                 Object.keys(links).forEach(linkKey => {
                     const link = links[linkKey];
                     if (deleteNodeIds.includes(link.inputNodeId) || deleteNodeIds.includes(link.outputNodeId)) {
+                        if(deleteNodeIds.includes(link.outputNodeId) && !deleteNodeIds.includes(link.inputNodeId)) {
+                            nodeIdToRecompute.push(link.inputNodeId);
+                        }
                         delete draft[linkKey];
                     }
                 });
@@ -175,8 +180,8 @@ const OuraCanvasApp = (): JSX.Element => {
                 if(!(key in newLinks)) {
                     delete propagationValues[key];
                 }
-            })
-            propagateAll(propagationValues, newNodes, newLinks, setNodes);
+            });
+            nodeIdToRecompute.forEach(nodeId => propagateNode(nodeId, propagationValues, newNodes, newLinks, setNodes));
         },
         [selectedItems, nodes, links]
     );
@@ -284,7 +289,7 @@ const OuraCanvasApp = (): JSX.Element => {
                 });
                 setNodes(data.nodes);
                 setLinks(data.links);
-                propagateAll(propagationValues, data.nodes, data.links, setNodes);
+                setRunFirstPropagation(true);
             }
         };
         reader.readAsDataURL(evt.target.files[0]);
