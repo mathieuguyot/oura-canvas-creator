@@ -105,7 +105,7 @@ export function propagateNode(nodeId: string, propagationValues: { [id: string]:
             }
         });
         const fIn = nodes[fInId];
-        if(fIn.name === NodeName.FunctionInputNode) {
+        if(fIn && fIn.name === NodeName.FunctionInputNode) {
             const funName = fIn.connectors["0"].data.value;
             const functionCallersNodeIds: string[] = [];
             Object.keys(nodes).forEach(k => {
