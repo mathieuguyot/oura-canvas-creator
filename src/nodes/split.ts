@@ -34,8 +34,8 @@ export default class SplitNode extends Node {
     }
 
     computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
-        const str = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
+        const str: string = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
         const split = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
-        return {"0": split[0] ? str.split(split[0]) : str};
+        return { "0": str.split(new RegExp(split)) };
     }
 }

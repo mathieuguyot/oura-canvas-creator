@@ -20,5 +20,8 @@ export enum NodeName {
     ThreeJS = "threejs",
     ThreeJSBox = "threejs-box",
     Range = "range",
-    Map = "map"
+    Map = "map",
+    TextArea = "text-area",
+    Pop = "pop",
+    Length = "length"
 }

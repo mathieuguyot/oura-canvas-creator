@@ -13,7 +13,7 @@ function getOutputLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
     Object.keys(links).forEach((linkKey) => {
         const link = links[linkKey];
-        if(link.outputNodeId === nodeId) {
+        if (link.outputNodeId === nodeId) {
             linkOutputs[linkKey] = links[linkKey];
         }
     });
@@ -24,14 +24,14 @@ function getInputsLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
     Object.keys(links).forEach((linkKey) => {
         const link = links[linkKey];
-        if(link.inputNodeId === nodeId) {
+        if (link.inputNodeId === nodeId) {
             linkOutputs[linkKey] = links[linkKey];
         }
     });
     return linkOutputs;
 }
 
-function propagationDictToOrderedList(propagationDict: { [id: string]: number }) : string[] {
+function propagationDictToOrderedList(propagationDict: { [id: string]: number }): string[] {
     const propagationList: [string, number][] = [];
     Object.keys(propagationDict).forEach(nodeId => propagationList.push([nodeId, propagationDict[nodeId]]));
     propagationList.sort((a, b) => a[1] - b[1]);
@@ -53,16 +53,16 @@ function propagateFromList(propagationList: string[], propagationValues: { [id: 
         const inputLinks = getInputsLinks(propagingNodeId, links);
         const inputValues: { [id: string]: any } = {};
         Object.keys(inputLinks).forEach((linkId) => {
-            if(!(linkId in propagationValues)) {
+            if (!(linkId in propagationValues)) {
                 return;
             }
             const pinId = links[linkId].inputPinId;
-            if(node.connectors[pinId].isMultiInputAllowed) {
-                if(!(pinId in inputValues)){
+            if (node.connectors[pinId] && node.connectors[pinId].isMultiInputAllowed) {
+                if (!(pinId in inputValues)) {
                     inputValues[pinId] = [];
                 }
                 inputValues[pinId].push(propagationValues[linkId]);
-            } else {
+            } else if (node.connectors[pinId]) {
                 inputValues[pinId] = propagationValues[linkId];
             }
         });
@@ -92,27 +92,27 @@ export function propagateNode(nodeId: string, propagationValues: { [id: string]:
 
     let fOutId = "";
     propagationList.forEach(k => {
-        if(nodes[k].name === NodeName.FunctionOutputNode) {
+        if (nodes[k].name === NodeName.FunctionOutputNode) {
             fOutId = k;
         }
     });
-    if(fOutId !== "") {
+    if (fOutId !== "") {
         const fOutIdLinks = getInputsLinks(fOutId, links);
         let fInId = "";
         Object.keys(fOutIdLinks).forEach(k => {
-            if(links[k].inputPinId === "0") {
+            if (links[k].inputPinId === "0") {
                 fInId = links[k].outputNodeId;
             }
         });
         const fIn = nodes[fInId];
-        if(fIn && fIn.name === NodeName.FunctionInputNode) {
+        if (fIn && fIn.name === NodeName.FunctionInputNode) {
             const funName = fIn.connectors["0"].data.value;
             const functionCallersNodeIds: string[] = [];
             Object.keys(nodes).forEach(k => {
-                if(nodes[k].name === NodeName.FunctionCallNode && nodes[k].connectors["0"].data.value === funName) {
+                if (nodes[k].name === NodeName.FunctionCallNode && nodes[k].connectors["0"].data.value === funName) {
                     functionCallersNodeIds.push(k);
                 }
-                if(nodes[k].name === NodeName.Map && nodes[k].connectors["2"].data.value === funName) {
+                if (nodes[k].name === NodeName.Map && nodes[k].connectors["2"].data.value === funName) {
                     functionCallersNodeIds.push(k);
                 }
             });
@@ -123,8 +123,8 @@ export function propagateNode(nodeId: string, propagationValues: { [id: string]:
     propagateFromList(propagationList, propagationValues, nodes, links, setNodes);
 }
 
-export function backPropagateFunctionNodes(alreadyComputedNodes: string[], nodeId: string,  propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): any {
-    if(alreadyComputedNodes.includes(nodeId)) {
+export function backPropagateFunctionNodes(alreadyComputedNodes: string[], nodeId: string, propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, fIns: { [id: string]: any }): any {
+    if (alreadyComputedNodes.includes(nodeId)) {
         return;
     }
 
@@ -135,7 +135,7 @@ export function backPropagateFunctionNodes(alreadyComputedNodes: string[], nodeI
     });
 
     // Computing output dep
-    if(node.name === NodeName.IfElse) {
+    if (node.name === NodeName.IfElse) {
         // First compute condition
         let ifLinkId = "";
         Object.keys(outputsLinks).forEach(k => {
@@ -150,7 +150,7 @@ export function backPropagateFunctionNodes(alreadyComputedNodes: string[], nodeI
                 backPropagateFunctionNodes(alreadyComputedNodes, links[k].outputNodeId, propagationValues, nodes, links, setNodes, fIns);
             }
         });
-    } else if(node.name === NodeName.FunctionOutputNode) {
+    } else if (node.name === NodeName.FunctionOutputNode) {
         Object.keys(outputsLinks).forEach(k => {
             if (links[k].inputPinId === "0") {
                 backPropagateFunctionNodes(alreadyComputedNodes, links[k].outputNodeId, propagationValues, nodes, links, setNodes, fIns);
@@ -160,17 +160,17 @@ export function backPropagateFunctionNodes(alreadyComputedNodes: string[], nodeI
     } else {
         outputsNodes.forEach(depNodeId => backPropagateFunctionNodes(alreadyComputedNodes, depNodeId, propagationValues, nodes, links, setNodes, fIns));
     }
-    
+
     // Preparing inputs of current propagation
     const inputLinks = getInputsLinks(nodeId, links);
     const inputValues: { [id: string]: any } = {};
     Object.keys(inputLinks).forEach((linkId) => {
-        if(!(linkId in propagationValues)) {
+        if (!(linkId in propagationValues)) {
             return;
         }
         const pinId = links[linkId].inputPinId;
-        if(node.connectors[pinId].isMultiInputAllowed) {
-            if(!(pinId in inputValues)){
+        if (node.connectors[pinId].isMultiInputAllowed) {
+            if (!(pinId in inputValues)) {
                 inputValues[pinId] = [];
             }
             inputValues[pinId].push(propagationValues[linkId]);
@@ -179,7 +179,7 @@ export function backPropagateFunctionNodes(alreadyComputedNodes: string[], nodeI
         }
     });
     // Computing current node
-    const outputValues = node.computeSpecific(node.name === NodeName.FunctionInputNode ? fIns :  inputValues, nodeId, setNodes, nodes, links);
+    const outputValues = node.computeSpecific(node.name === NodeName.FunctionInputNode ? fIns : inputValues, nodeId, setNodes, nodes, links);
     // Adding values to propagationValues
     const ouputsLinks = getOutputLinks(nodeId, links);
     Object.keys(ouputsLinks).forEach((linkId) => {
@@ -195,20 +195,20 @@ export function propateFunction(nodeId: string, nodes: NodeCollection, links: Li
         const link = links[key];
         return link.outputNodeId === nodeId && link.outputPinId === "0";
     });
-    if(!fLinkId) {
+    if (!fLinkId) {
         console.log("no node id");
         return;
     }
-    
+
     const fOutId = links[fLinkId].inputNodeId;
     backPropagateFunctionNodes([], fOutId, propagationValues, nodes, links, setNodes, fIns);
-    
+
     // Return result
     const fLinkResId = Object.keys(links).find((key) => {
         const link = links[key];
         return link.inputNodeId === fOutId && link.inputPinId === "1";
     });
-    if(fLinkResId && fLinkResId in propagationValues) {
+    if (fLinkResId && fLinkResId in propagationValues) {
         return propagationValues[fLinkResId]
     }
     return undefined;

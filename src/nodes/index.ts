@@ -22,6 +22,9 @@ import ThreeJS from "./threejs";
 import ThreeJSBox from "./threejs_box";
 import RangeNode from "./range";
 import { MapNode } from "./map";
+import TextAreaNode from "./textArea";
+import PopNode from "./pop";
+import LengthNode from "./length";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -46,7 +49,10 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         18: new ThreeJS(),
         19: new ThreeJSBox(),
         20: new RangeNode(),
-        21: new MapNode()
+        21: new MapNode(),
+        22: new TextAreaNode(),
+        23: new PopNode(),
+        24: new LengthNode()
     };
 }
 
@@ -118,6 +124,15 @@ function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispat
             break;
         case NodeName.Map:
             node = MapNode.createFromJson(jsonObj);
+            break;
+        case NodeName.TextArea:
+            node = TextAreaNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Pop:
+            node = PopNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Length:
+            node = LengthNode.createFromJson(jsonObj);
             break;
     }
     if(!node) {

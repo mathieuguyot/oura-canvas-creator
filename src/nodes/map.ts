@@ -50,10 +50,11 @@ export class MapNode extends Node {
             return {"0": []};
         }
         const res = [] as any[];
-        inputs[1].forEach((e: any) => {
+        inputs[1].forEach((e: any, i: number) => {
             let fIns: any = {};
             fIns["3"] = e;
-            res.push(propateFunction(finNodeId, nodes, links, setNodes, fIns));
+            fIns["4"] = i;
+            res.push(propateFunction(finNodeId, nodes, links, () => {}, fIns));
             
         });
         return {"0": res};
