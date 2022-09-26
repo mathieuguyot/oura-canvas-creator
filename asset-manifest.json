@@ -1,8 +1,8 @@
 {
   "files": {
     "main.css": "/oura-canvas-creator/static/css/main.6dea0f05.chunk.css",
-    "main.js": "/oura-canvas-creator/static/js/main.3e9e6f05.chunk.js",
-    "main.js.map": "/oura-canvas-creator/static/js/main.3e9e6f05.chunk.js.map",
+    "main.js": "/oura-canvas-creator/static/js/main.062cd8a8.chunk.js",
+    "main.js.map": "/oura-canvas-creator/static/js/main.062cd8a8.chunk.js.map",
     "runtime-main.js": "/oura-canvas-creator/static/js/runtime-main.170c30b6.js",
     "runtime-main.js.map": "/oura-canvas-creator/static/js/runtime-main.170c30b6.js.map",
     "static/js/2.0329e1f9.chunk.js": "/oura-canvas-creator/static/js/2.0329e1f9.chunk.js",
@@ -15,6 +15,6 @@
     "static/js/runtime-main.170c30b6.js",
     "static/js/2.0329e1f9.chunk.js",
     "static/css/main.6dea0f05.chunk.css",
-    "static/js/main.3e9e6f05.chunk.js"
+    "static/js/main.062cd8a8.chunk.js"
   ]
 }
