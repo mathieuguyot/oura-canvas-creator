@@ -17,9 +17,9 @@ import {
 } from "oura-node-editor";
 import { createNodeFromJson, createNodeSchema } from "./nodes";
 import { createCustomConnectorsContents } from "./connector_content";
-import { propagateAll, propagateNode } from "./nodes/node";
+import { TaskQueue } from "./nodes/node";
 
-let propagationValues: { [id: string]: any } = {};
+let taskQueue: TaskQueue = new TaskQueue();
 
 const OuraCanvasApp = (): JSX.Element => {
 
@@ -39,7 +39,7 @@ const OuraCanvasApp = (): JSX.Element => {
         const locallyStoredLinks = localStorage.getItem("links");
         const initNodes: NodeCollection = locallyStoredNodes ? JSON.parse(locallyStoredNodes) : {};
         const initLinks: LinkCollection = locallyStoredLinks ? JSON.parse(locallyStoredLinks) : {};
-        if(locallyStoredNodes) {
+        if (locallyStoredNodes) {
             Object.keys(initNodes).forEach((key) => {
                 initNodes[key] = createNodeFromJson(initNodes[key], key, setNodes);
             });
@@ -50,19 +50,20 @@ const OuraCanvasApp = (): JSX.Element => {
     }, []);
 
     React.useEffect(() => {
-        if(runFirstPropagation) {
+        if (runFirstPropagation) {
             setRunFirstPropagation(false);
-            propagateAll(propagationValues, nodes, links, setNodes);
+            taskQueue.propagateAll(nodes, links);
+            taskQueue.runAll(nodes, links, setNodes);
         }
     }, [runFirstPropagation, links, nodes]);
 
     useEffect(() => {
-        if(Object.keys(nodes).length > 0) {
+        if (Object.keys(nodes).length > 0) {
             localStorage.setItem("nodes", JSON.stringify(nodes));
         }
     }, [nodes]);
     useEffect(() => {
-        if(Object.keys(links).length > 0) {
+        if (Object.keys(links).length > 0) {
             localStorage.setItem("links", JSON.stringify(links));
         }
     }, [links]);
@@ -70,44 +71,45 @@ const OuraCanvasApp = (): JSX.Element => {
     const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema();
 
     const setSelectedItemsAndMoveSelectedNodeFront = useCallback((selection: SelectionItem[]) => {
-        if(selection.length === 1 && selection[0].type === "node") {
+        if (selection.length === 1 && selection[0].type === "node") {
             setNodes(
                 (nodes: NodeCollection) => {
                     const selectedNodeId = selection[0].id;
                     const newNodes: NodeCollection = {};
                     Object.keys(nodes).forEach(key => {
-                        if(key !== selectedNodeId) {
+                        if (key !== selectedNodeId) {
                             newNodes[key] = nodes[key];
                         }
                     });
                     newNodes[selectedNodeId] = nodes[selectedNodeId];
                     return newNodes;
-            })
+                })
         }
         setSelectedItems(selection);
     }, []);
 
     React.useEffect(() => {
         const interval = setInterval(() => {
-            let updated = false;
+            const updated: string[] = [];
             const newNodes = produce(nodes, (draft: NodeCollection) => {
                 for (let key of Object.keys(nodes)) {
-                    if(draft[key].name === "timer" && draft[key].connectors[1].data.value) {
+                    if (draft[key].name === "timer" && draft[key].connectors[1].data.value) {
                         draft[key].connectors[0].data.value = (Number(draft[key].connectors[0].data.value) + 1).toString();
-                        updated = true;
+                        updated.push(key);
                     }
                 }
             });
-            if(updated) {
+            if (updated.length > 0) {
                 setNodes(newNodes);
-                propagateAll(propagationValues, nodes, links, setNodes);
+                updated.forEach(k => taskQueue.propagateNode(k, newNodes, links));
+                taskQueue.runAll(newNodes, links, setNodes);
             }
         }, 1000 / 60);
         return () => clearInterval(interval);
-      }, [nodes, links]);
+    }, [nodes, links]);
 
     const onNodeMove = React.useCallback(
-        (id: string, newX: number, newY: number, newWidth: number) => { 
+        (id: string, newX: number, newY: number, newWidth: number) => {
             setNodes(
                 nodes => produce(nodes, (draft: NodeCollection) => {
                     draft[id].position = { x: newX, y: newY };
@@ -127,7 +129,8 @@ const OuraCanvasApp = (): JSX.Element => {
             const newLinks = produce(links, (draft) => {
                 draft[generateUuid()] = link;
             });
-            propagateNode(link.outputNodeId, propagationValues, nodes, newLinks, setNodes);
+            taskQueue.propagateNode(link.outputNodeId, nodes, newLinks);
+            taskQueue.runAll(nodes, newLinks, setNodes);
         }, [links, nodes]
     );
 
@@ -166,7 +169,7 @@ const OuraCanvasApp = (): JSX.Element => {
                 Object.keys(links).forEach(linkKey => {
                     const link = links[linkKey];
                     if (deleteNodeIds.includes(link.inputNodeId) || deleteNodeIds.includes(link.outputNodeId)) {
-                        if(deleteNodeIds.includes(link.outputNodeId) && !deleteNodeIds.includes(link.inputNodeId)) {
+                        if (deleteNodeIds.includes(link.outputNodeId) && !deleteNodeIds.includes(link.inputNodeId)) {
                             nodeIdToRecompute.push(link.inputNodeId);
                         }
                         delete draft[linkKey];
@@ -176,20 +179,25 @@ const OuraCanvasApp = (): JSX.Element => {
                     delete draft[id];
                 });
             });
-            Object.keys(propagationValues).forEach(key => {
-                if(!(key in newLinks)) {
-                    delete propagationValues[key];
-                }
+            // TODO purge taskQueue
+            //Object.keys(propagationValues).forEach(key => {
+            //    if (!(key in newLinks)) {
+            //        delete propagationValues[key];
+            //    }
+            //});
+            nodeIdToRecompute.forEach(nodeId => {
+                taskQueue.propagateNode(nodeId, newNodes, newLinks);
+                taskQueue.runAll(newNodes, newLinks, setNodes);
             });
-            nodeIdToRecompute.forEach(nodeId => propagateNode(nodeId, propagationValues, newNodes, newLinks, setNodes));
         },
         [selectedItems, nodes, links]
     );
 
     const [newNodeId, setNewNodeId] = useState<string | undefined>(undefined);
     useEffect(() => {
-        if(newNodeId) {
-            propagateNode(newNodeId, propagationValues, nodes, links, setNodes)
+        if (newNodeId) {
+            taskQueue.propagateNode(newNodeId, nodes, links);
+            taskQueue.runAll(nodes, links, setNodes);
             setNewNodeId(undefined);
         }
     }, [newNodeId, nodes, links]);
@@ -229,7 +237,8 @@ const OuraCanvasApp = (): JSX.Element => {
             const newNodes = produce(nodes, (draft) => {
                 draft[nodeId].connectors[cId] = connector;
             });
-            propagateNode(nodeId, propagationValues, newNodes, links, setNodes);
+            taskQueue.propagateNode(nodeId, newNodes, links);
+            taskQueue.runAll(newNodes, links, setNodes);
         }, [nodes, links]
     );
 
@@ -248,7 +257,7 @@ const OuraCanvasApp = (): JSX.Element => {
 
     const onMouseDown = React.useCallback(
         () => {
-            if(nodePickerPos && !nodePickerOnMouseHover) {
+            if (nodePickerPos && !nodePickerOnMouseHover) {
                 setNodePickerOnMouseHover(false);
                 setNodePickerPos(null);
             }
@@ -265,24 +274,24 @@ const OuraCanvasApp = (): JSX.Element => {
         const element = document.createElement('a');
         element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(data)));
         element.setAttribute('download', "oura-node-editor.json");
-      
+
         element.style.display = 'none';
         document.body.appendChild(element);
-      
+
         element.click();
-      
+
         document.body.removeChild(element);
     }, [nodes, links]);
 
     const onLoadButton = useCallback((evt) => {
-        propagationValues = {};
-        if(evt.target.files.size < 1) {
+        taskQueue.reset();
+        if (evt.target.files.size < 1) {
             return;
         }
 
         const reader = new FileReader();
         reader.onload = (file) => {
-            if(file.target && file.target.result && file.target.result) {
+            if (file.target && file.target.result && file.target.result) {
                 const data = JSON.parse(atob((file.target.result as string).substring(29)));
                 Object.keys(data.nodes).forEach((key) => {
                     data.nodes[key] = createNodeFromJson(data.nodes[key], key, setNodes);
@@ -296,31 +305,31 @@ const OuraCanvasApp = (): JSX.Element => {
     }, []);
 
     const onResetButton = useCallback(() => {
-        propagationValues = {};
+        taskQueue.reset();
         setNodes({});
         setLinks({});
     }, []);
 
     let nodePicker = null;
-    if(nodePickerPos && selectedItems.length === 0) {
+    if (nodePickerPos && selectedItems.length === 0) {
         nodePicker = <div
-                style={{
-                    width: 640,
-                    height: 500,
-                    position: "absolute",
-                    top: nodePickerPos.y,
-                    left: nodePickerPos.x,
-                    backgroundColor: "white"
-                }}>
-                <AddNodeContextualMenu 
-                    nodesSchema={nodesSchemas}
-                    onNodeSelection={onNodeSelection}
-                    onMouseHover={setNodePickerOnMouseHover}
-                    createCustomConnectorComponent={createCustomConnectorsContents}
-                />
-            </div>;
+            style={{
+                width: 640,
+                height: 500,
+                position: "absolute",
+                top: nodePickerPos.y,
+                left: nodePickerPos.x,
+                backgroundColor: "white"
+            }}>
+            <AddNodeContextualMenu
+                nodesSchema={nodesSchemas}
+                onNodeSelection={onNodeSelection}
+                onMouseHover={setNodePickerOnMouseHover}
+                createCustomConnectorComponent={createCustomConnectorsContents}
+            />
+        </div>;
     }
-    else if(nodePickerPos) {
+    else if (nodePickerPos) {
         nodePicker = <div
             style={{
                 width: 640,
@@ -330,11 +339,11 @@ const OuraCanvasApp = (): JSX.Element => {
                 left: nodePickerPos.x,
                 backgroundColor: "white"
             }}>
-                <SelectionManagementContextualMenu
-                    onMouseHover={setNodePickerOnMouseHover}
-                    onDeleteSelection={onDeleteSelection}
-                />
-            </div>
+            <SelectionManagementContextualMenu
+                onMouseHover={setNodePickerOnMouseHover}
+                onDeleteSelection={onDeleteSelection}
+            />
+        </div>
     }
 
     const buttonStyle = {
@@ -370,10 +379,10 @@ const OuraCanvasApp = (): JSX.Element => {
                 />
                 {nodePicker}
             </div>
-            <button onClick={onSaveButton} style={{position: "absolute", left: 5, bottom: 5, ...buttonStyle}}>save</button>
-            <label htmlFor="files" className="btn" style={{position: "absolute", left: 55, bottom: 5, ...buttonStyle}}>load</label>
-            <input onChange={onLoadButton} id="files" style={{visibility: "hidden"}} type="file"/>
-            <button onClick={onResetButton} style={{position: "absolute", right: 5, bottom: 5, ...buttonStyle}}>reset</button>
+            <button onClick={onSaveButton} style={{ position: "absolute", left: 5, bottom: 5, ...buttonStyle }}>save</button>
+            <label htmlFor="files" className="btn" style={{ position: "absolute", left: 55, bottom: 5, ...buttonStyle }}>load</label>
+            <input onChange={onLoadButton} id="files" style={{ visibility: "hidden" }} type="file" />
+            <button onClick={onResetButton} style={{ position: "absolute", right: 5, bottom: 5, ...buttonStyle }}>reset</button>
         </>
     );
 };

@@ -6,7 +6,7 @@ import produce from "immer";
 
 export default class LengthNode extends Node {
     constructor() {
-        super(NodeName.Length, 170, {x:0, y:0}, {
+        super(NodeName.Length, 170, { x: 0, y: 0 }, {
             0: {
                 name: "size",
                 pinLayout: PinLayout.RIGHT_PIN,
@@ -17,12 +17,12 @@ export default class LengthNode extends Node {
                 name: "array",
                 pinLayout: PinLayout.LEFT_PIN,
                 contentType: "none",
-                data: { }
+                data: {}
             }
         });
     }
 
-    static createFromJson(json: string) : LengthNode {
+    static createFromJson(json: string): LengthNode {
         let node = new LengthNode();
         Node.initFromJson(json, node);
         return node;

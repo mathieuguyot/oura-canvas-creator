@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Node, { propateFunction } from "./node";
+import Node, { TaskQueue } from "./node";
 import { LinkCollection, NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
 import produce from "immer";
@@ -30,7 +30,8 @@ export class FunctionCallNode extends Node {
         return node;
     }
 
-    computeSpecific(inputs: { [id: string]: any; }, nodeId: string, setNodes: Dispatch<SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection): { [id: string]: any; } {
+
+    registerfunctionRun(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): boolean {
         // 1. Fetch function node
         const functionName = this.connectors[0].data.value;
         const expectedConnectors: string[] = [];
@@ -75,8 +76,38 @@ export class FunctionCallNode extends Node {
         });
 
         if (finNodeId.length > 0) {
-            const res = propateFunction(finNodeId, nodes, links, setNodes, fIns);
-            return { "1": res };
+            queue.propateFunction(finNodeId, links, fIns);
+            return true;
+        }
+        return false;
+    }
+
+    computeSpecific(inputs: { [id: string]: any; }, nodeId: string, setNodes: Dispatch<SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): { [id: string]: any; } {
+        // 1. Fetch function node
+        const functionName = this.connectors[0].data.value;
+        const expectedConnectors: string[] = [];
+        let finNodeId: string = "";
+        Object.keys(nodes).forEach(nodeKey => {
+            const node = nodes[nodeKey];
+            if (node.name === NodeName.FunctionInputNode && node.connectors[0].data.value === functionName) {
+                finNodeId = nodeKey;
+                Object.keys(node.connectors).forEach(key => {
+                    if (Number(key) > 2 && node) {
+                        expectedConnectors.push(node.connectors[key].name);
+                    }
+                });
+            }
+        });
+
+        let fIns: any = {};
+        expectedConnectors.forEach((_, i) => {
+            if ((i + 2) in inputs) {
+                fIns[`${i + 3}`] = inputs[`${i + 2}`];
+            }
+        });
+
+        if (finNodeId.length > 0) {
+            return { "1": queue.popResult() };
         }
 
         return {};
