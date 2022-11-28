@@ -206,13 +206,15 @@ export class TaskQueue {
                         return;
                     }
                     const pinId = links[linkId].inputPinId;
-                    if (node.connectors[pinId].isMultiInputAllowed) {
-                        if (!(pinId in inputValues)) {
-                            inputValues[pinId] = [];
+                    if (pinId in node.connectors) {
+                        if (node.connectors[pinId].isMultiInputAllowed) {
+                            if (!(pinId in inputValues)) {
+                                inputValues[pinId] = [];
+                            }
+                            inputValues[pinId].push(functionCall.propagationValues[linkId]);
+                        } else {
+                            inputValues[pinId] = functionCall.propagationValues[linkId];
                         }
-                        inputValues[pinId].push(functionCall.propagationValues[linkId]);
-                    } else {
-                        inputValues[pinId] = functionCall.propagationValues[linkId];
                     }
                 });
                 // Computing current node
@@ -286,53 +288,6 @@ export class TaskQueue {
         }
     }
 };
-
-/*
-export function propagateNode(nodeId: string, propagationValues: { [id: string]: any }, nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): void {
-    const propagationDict: { [id: string]: number } = {};
-    createPropagationTree(nodeId, links, 0, propagationDict);
-    const propagationList = propagationDictToOrderedList(propagationDict);
-
-    let fOutId = "";
-    propagationList.forEach(k => {
-        if (nodes[k].name === NodeName.FunctionOutputNode) {
-            fOutId = k;
-        }
-    });
-
-    // If one of the node to propagate is a function output node
-    if (fOutId !== "") {
-        // Search associate function input
-        const fOutIdLinks = getInputsLinks(fOutId, links);
-        let fInId = "";
-        Object.keys(fOutIdLinks).forEach(k => {
-            if (links[k].inputPinId === "0") {
-                fInId = links[k].outputNodeId;
-            }
-        });
-        const fIn = nodes[fInId];
-        // If function input is found
-        if (fIn && fIn.name === NodeName.FunctionInputNode) {
-            const funName = fIn.connectors["0"].data.value;
-            const functionCallersNodeIds: string[] = [];
-            // Find each function caller and call them
-            Object.keys(nodes).forEach(k => {
-                if (nodes[k].name === NodeName.FunctionCallNode && nodes[k].connectors["0"].data.value === funName) {
-                    functionCallersNodeIds.push(k);
-                }
-                if (nodes[k].name === NodeName.Map && nodes[k].connectors["2"].data.value === funName) {
-                    functionCallersNodeIds.push(k);
-                }
-            });
-            functionCallersNodeIds.forEach(k => propagateNode(k, propagationValues, nodes, links, setNodes));
-        }
-    }
-
-    // Else, run nominal transformation
-    else {
-        //propagateFromList(propagationList, propagationValues, nodes, links, setNodes);
-    }
-}*/
 
 export default abstract class Node implements NodeModel {
     [immerable] = true;

@@ -5,7 +5,7 @@ import { NodeName } from "./consts";
 
 export default class SplitNode extends Node {
     constructor() {
-        super(NodeName.Split, 100, {x:0, y:0}, {
+        super(NodeName.Split, 100, { x: 0, y: 0 }, {
             0: {
                 name: "out",
                 pinLayout: PinLayout.RIGHT_PIN,
@@ -27,15 +27,17 @@ export default class SplitNode extends Node {
         });
     }
 
-    static createFromJson(json: string) : SplitNode {
+    static createFromJson(json: string): SplitNode {
         let node = new SplitNode();
         Node.initFromJson(json, node);
         return node;
     }
 
     computeSpecific(inputs: { [id: string]: any }): { [id: string]: any } {
-        const str: string = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
-        const split = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
+        let str: string = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
+        let split: string = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
+        str = !str ? "" : str;
+        split = !split ? "" : split;
         return { "0": str.split(new RegExp(split)) };
     }
 }

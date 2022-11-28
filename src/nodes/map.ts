@@ -22,7 +22,7 @@ export class MapNode extends Node {
             },
             2: {
                 name: "f",
-                pinLayout: PinLayout.NO_PINS,
+                pinLayout: PinLayout.LEFT_PIN,
                 contentType: "string",
                 data: { value: "" },
             }
@@ -37,7 +37,7 @@ export class MapNode extends Node {
 
     registerfunctionRun(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): boolean {
         // 1. Fetch function node
-        const functionName = this.connectors[2].data.value;
+        const functionName = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
         let finNodeId: string = "";
         Object.keys(nodes).forEach(nodeKey => {
             const node = nodes[nodeKey];
@@ -61,7 +61,7 @@ export class MapNode extends Node {
 
     computeSpecific(inputs: { [id: string]: any; }, nodeId: string, setNodes: Dispatch<SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): { [id: string]: any; } {
         // 1. Fetch function node
-        const functionName = this.connectors[2].data.value;
+        const functionName = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
         let finNodeId: string = "";
         Object.keys(nodes).forEach(nodeKey => {
             const node = nodes[nodeKey];

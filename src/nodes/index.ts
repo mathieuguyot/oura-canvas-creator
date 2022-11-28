@@ -23,8 +23,9 @@ import ThreeJSBox from "./threejs_box";
 import RangeNode from "./range";
 import { MapNode } from "./map";
 import TextAreaNode from "./textArea";
-import PopNode from "./pop";
+import { PopNode, ShiftNode } from "./pop";
 import LengthNode from "./length";
+import { ObjectCreatorNode, ObjectExtractorNode } from "./object";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -52,13 +53,16 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         21: new MapNode(),
         22: new TextAreaNode(),
         23: new PopNode(),
-        24: new LengthNode()
+        24: new LengthNode(),
+        25: new ShiftNode(),
+        26: new ObjectCreatorNode(),
+        27: new ObjectExtractorNode()
     };
 }
 
-function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>) : Node {
+function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): Node {
     let node: Node | undefined = undefined;
-    switch(jsonObj.name) {
+    switch (jsonObj.name) {
         case NodeName.Canvas:
             node = CanvasNode.createFromJson(jsonObj);
             break;
@@ -134,9 +138,18 @@ function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispat
         case NodeName.Length:
             node = LengthNode.createFromJson(jsonObj);
             break;
+        case NodeName.Shift:
+            node = ShiftNode.createFromJson(jsonObj);
+            break;
+        case NodeName.ObjectCreatorNode:
+            node = ObjectCreatorNode.createFromJson(jsonObj, nodeId, setNodes);
+            break;
+        case NodeName.ObjectExtractorNode:
+            node = ObjectExtractorNode.createFromJson(jsonObj, nodeId, setNodes);
+            break;
     }
-    if(!node) {
-        throw new Error("Error while reading node from json"); 
+    if (!node) {
+        throw new Error("Error while reading node from json");
     }
     return node;
 }

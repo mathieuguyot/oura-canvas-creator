@@ -23,5 +23,8 @@ export enum NodeName {
     Map = "map",
     TextArea = "text-area",
     Pop = "pop",
-    Length = "length"
+    Length = "length",
+    Shift = "shift",
+    ObjectCreatorNode = "object creator",
+    ObjectExtractorNode = "object extractor",
 }
