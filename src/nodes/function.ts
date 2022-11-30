@@ -218,3 +218,115 @@ export class FunctionOutputNode extends Node {
         return {};
     }
 }
+
+export class LambdaCallNode extends Node {
+    public nodeId?: string;
+    public setNodes?: React.Dispatch<React.SetStateAction<NodeCollection>>;
+    constructor() {
+        super(NodeName.LambdaCall, 150, { x: 0, y: 0 }, {
+            0: {
+                name: "name",
+                pinLayout: PinLayout.BOTH_PINS,
+                contentType: "string",
+                data: { value: "" },
+            },
+            1: {
+                name: "add",
+                pinLayout: PinLayout.NO_PINS,
+                contentType: "button",
+                data: {
+                    label: "add input"
+                }
+            },
+            2: {
+                name: "remove",
+                pinLayout: PinLayout.NO_PINS,
+                contentType: "button",
+                data: {
+                    label: "remove input"
+                }
+            },
+        });
+        this.add = this.add.bind(this);
+        this.remove = this.remove.bind(this);
+        this.connectors[1].data.onClick = this.add;
+        this.connectors[2].data.onClick = this.remove;
+    }
+
+    add(node: Node) {
+        if (this.nodeId && this.setNodes) {
+            this.setNodes(
+                nodes => produce(nodes, (draft: NodeCollection) => {
+                    if (this.nodeId) {
+                        draft[this.nodeId].connectors[Object.keys(node.connectors).length] = {
+                            name: `param-${Object.keys(node.connectors).length - 2}`,
+                            pinLayout: PinLayout.LEFT_PIN,
+                            contentType: "none",
+                            data: {
+                                value: `param-${Object.keys(node.connectors).length - 2}`
+                            }
+                        }
+                    }
+                })
+            );
+        }
+    }
+
+    remove(node: Node) {
+        if (Object.keys(node.connectors).length > 2) {
+
+        }
+    }
+
+    static createFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): LambdaCallNode {
+        let node = new LambdaCallNode();
+        Node.initFromJson(jsonObj, node);
+        node.nodeId = nodeId;
+        node.setNodes = setNodes;
+        node.connectors[1].data.onClick = node.add.bind(node);
+        node.connectors[2].data.onClick = node.remove.bind(node);
+        return node;
+    }
+
+    registerfunctionRun(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): boolean {
+        // 1. Fetch function node
+        const functionName = "0" in inputs ? inputs[0] : this.connectors[0].data.value;
+        let finNodeId: string = "";
+        Object.keys(nodes).forEach(nodeKey => {
+            const node = nodes[nodeKey];
+            if (node.name === NodeName.FunctionInputNode && node.connectors[0].data.value === functionName) {
+                finNodeId = nodeKey;
+            }
+        });
+
+        let fIns: any = {};
+        Object.keys(this.connectors).forEach((key: string, index: number) => {
+            if (index <= 2) return;
+            const val = key in inputs ? inputs[key] : undefined;
+            fIns[key] = val;
+        });
+
+        if (finNodeId.length > 0) {
+            queue.propateFunction(finNodeId, links, fIns);
+            return true;
+        }
+        return false;
+    }
+
+    computeSpecific(inputs: { [id: string]: any; }, nodeId: string, setNodes: Dispatch<SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): { [id: string]: any } {
+        let finNodeId: string = "";
+        const functionName = "0" in inputs ? inputs[0] : this.connectors[0].data.value;
+        Object.keys(nodes).forEach(nodeKey => {
+            const node = nodes[nodeKey];
+            if (node.name === NodeName.FunctionInputNode && node.connectors[0].data.value === functionName) {
+                finNodeId = nodeKey;
+            }
+        });
+
+        if (finNodeId.length > 0) {
+            return { "0": queue.popResult() };
+        }
+
+        return {};
+    }
+}

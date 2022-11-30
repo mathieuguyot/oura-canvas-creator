@@ -25,6 +25,7 @@ export enum NodeName {
     Pop = "pop",
     Length = "length",
     Shift = "shift",
-    ObjectCreatorNode = "object creator",
-    ObjectExtractorNode = "object extractor",
+    ObjectCreatorNode = "object-creator",
+    ObjectExtractorNode = "object-extractor",
+    LambdaCall = "lambda-call"
 }

@@ -136,6 +136,9 @@ export class TaskQueue {
                     if (nodes[k].name === NodeName.Map && nodes[k].connectors["2"].data.value === funName) {
                         functionCallersNodeIds.push(k);
                     }
+                    if (nodes[k].name === NodeName.LambdaCall && nodes[k].connectors["0"].data.value === funName) {
+                        functionCallersNodeIds.push(k);
+                    }
                 });
                 functionCallersNodeIds.forEach(k => this.propagateNode(k, nodes, links));
             }

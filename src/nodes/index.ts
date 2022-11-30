@@ -17,7 +17,7 @@ import LogNode from "./log";
 import ArcNode from "./arc";
 import CheckNode from "./check";
 import BooleanNode from "./boolean";
-import { FunctionCallNode, FunctionInputNode, FunctionOutputNode } from "./function";
+import { FunctionCallNode, FunctionInputNode, FunctionOutputNode, LambdaCallNode } from "./function";
 import ThreeJS from "./threejs";
 import ThreeJSBox from "./threejs_box";
 import RangeNode from "./range";
@@ -56,7 +56,8 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         24: new LengthNode(),
         25: new ShiftNode(),
         26: new ObjectCreatorNode(),
-        27: new ObjectExtractorNode()
+        27: new ObjectExtractorNode(),
+        28: new LambdaCallNode()
     };
 }
 
@@ -146,6 +147,9 @@ function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispat
             break;
         case NodeName.ObjectExtractorNode:
             node = ObjectExtractorNode.createFromJson(jsonObj, nodeId, setNodes);
+            break;
+        case NodeName.LambdaCall:
+            node = LambdaCallNode.createFromJson(jsonObj, nodeId, setNodes);
             break;
     }
     if (!node) {
