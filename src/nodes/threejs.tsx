@@ -6,14 +6,19 @@ import produce from "immer";
 
 export default class ThreeJS extends Node {
     constructor() {
-        super(NodeName.ThreeJS, 170, { x: 0, y: 0 }, {
-            0: {
-                name: "threejs",
-                pinLayout: PinLayout.LEFT_PIN,
-                contentType: "threejs",
-                data: {}
+        super(
+            NodeName.ThreeJS,
+            170,
+            { x: 0, y: 0 },
+            {
+                0: {
+                    name: "threejs",
+                    pinLayout: PinLayout.LEFT_PIN,
+                    contentType: "threejs",
+                    data: {}
+                }
             }
-        });
+        );
     }
 
     static createFromJson(json: string): ThreeJS {
@@ -23,9 +28,13 @@ export default class ThreeJS extends Node {
         return node;
     }
 
-    computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
-        setNodes(
-            nodes => produce(nodes, (draft: NodeCollection) => {
+    computeSpecific(
+        inputs: { [id: string]: any },
+        nodeId: string,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+    ): { [id: string]: any } {
+        setNodes((nodes) =>
+            produce(nodes, (draft: NodeCollection) => {
                 draft[nodeId].connectors[0].data.obj = inputs[0] ? inputs[0] : undefined;
             })
         );

@@ -8,30 +8,35 @@ export class ObjectCreatorNode extends Node {
     public nodeId?: string;
     public setNodes?: React.Dispatch<React.SetStateAction<NodeCollection>>;
     constructor() {
-        super(NodeName.ObjectCreatorNode, 150, { x: 0, y: 0 }, {
-            0: {
-                name: "object",
-                pinLayout: PinLayout.RIGHT_PIN,
-                contentType: "none",
-                data: {},
-            },
-            1: {
-                name: "add",
-                pinLayout: PinLayout.NO_PINS,
-                contentType: "button",
-                data: {
-                    label: "add input"
+        super(
+            NodeName.ObjectCreatorNode,
+            150,
+            { x: 0, y: 0 },
+            {
+                0: {
+                    name: "object",
+                    pinLayout: PinLayout.RIGHT_PIN,
+                    contentType: "none",
+                    data: {}
+                },
+                1: {
+                    name: "add",
+                    pinLayout: PinLayout.NO_PINS,
+                    contentType: "button",
+                    data: {
+                        label: "add input"
+                    }
+                },
+                2: {
+                    name: "remove",
+                    pinLayout: PinLayout.NO_PINS,
+                    contentType: "button",
+                    data: {
+                        label: "remove input"
+                    }
                 }
-            },
-            2: {
-                name: "remove",
-                pinLayout: PinLayout.NO_PINS,
-                contentType: "button",
-                data: {
-                    label: "remove input"
-                }
-            },
-        });
+            }
+        );
         this.add = this.add.bind(this);
         this.remove = this.remove.bind(this);
         this.connectors[1].data.onClick = this.add;
@@ -40,8 +45,8 @@ export class ObjectCreatorNode extends Node {
 
     add(node: Node) {
         if (this.nodeId && this.setNodes) {
-            this.setNodes(
-                nodes => produce(nodes, (draft: NodeCollection) => {
+            this.setNodes((nodes) =>
+                produce(nodes, (draft: NodeCollection) => {
                     if (this.nodeId) {
                         draft[this.nodeId].connectors[Object.keys(node.connectors).length] = {
                             name: `param-${Object.keys(node.connectors).length - 2}`,
@@ -50,7 +55,7 @@ export class ObjectCreatorNode extends Node {
                             data: {
                                 value: ""
                             }
-                        }
+                        };
                     }
                 })
             );
@@ -59,11 +64,14 @@ export class ObjectCreatorNode extends Node {
 
     remove(node: Node) {
         if (Object.keys(node.connectors).length > 2) {
-
         }
     }
 
-    static createFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): ObjectCreatorNode {
+    static createFromJson(
+        jsonObj: any,
+        nodeId: string,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+    ): ObjectCreatorNode {
         let node = new ObjectCreatorNode();
         Node.initFromJson(jsonObj, node);
         node.nodeId = nodeId;
@@ -84,35 +92,39 @@ export class ObjectCreatorNode extends Node {
     }
 }
 
-
 export class ObjectExtractorNode extends Node {
     public nodeId?: string;
     public setNodes?: React.Dispatch<React.SetStateAction<NodeCollection>>;
     constructor() {
-        super(NodeName.ObjectExtractorNode, 150, { x: 0, y: 0 }, {
-            0: {
-                name: "object",
-                pinLayout: PinLayout.LEFT_PIN,
-                contentType: "none",
-                data: {},
-            },
-            1: {
-                name: "add",
-                pinLayout: PinLayout.NO_PINS,
-                contentType: "button",
-                data: {
-                    label: "add input"
+        super(
+            NodeName.ObjectExtractorNode,
+            150,
+            { x: 0, y: 0 },
+            {
+                0: {
+                    name: "object",
+                    pinLayout: PinLayout.LEFT_PIN,
+                    contentType: "none",
+                    data: {}
+                },
+                1: {
+                    name: "add",
+                    pinLayout: PinLayout.NO_PINS,
+                    contentType: "button",
+                    data: {
+                        label: "add input"
+                    }
+                },
+                2: {
+                    name: "remove",
+                    pinLayout: PinLayout.NO_PINS,
+                    contentType: "button",
+                    data: {
+                        label: "remove input"
+                    }
                 }
-            },
-            2: {
-                name: "remove",
-                pinLayout: PinLayout.NO_PINS,
-                contentType: "button",
-                data: {
-                    label: "remove input"
-                }
-            },
-        });
+            }
+        );
         this.add = this.add.bind(this);
         this.remove = this.remove.bind(this);
         this.connectors[1].data.onClick = this.add;
@@ -121,8 +133,8 @@ export class ObjectExtractorNode extends Node {
 
     add(node: Node) {
         if (this.nodeId && this.setNodes) {
-            this.setNodes(
-                nodes => produce(nodes, (draft: NodeCollection) => {
+            this.setNodes((nodes) =>
+                produce(nodes, (draft: NodeCollection) => {
                     if (this.nodeId) {
                         draft[this.nodeId].connectors[Object.keys(node.connectors).length] = {
                             name: `param-${Object.keys(node.connectors).length - 2}`,
@@ -131,7 +143,7 @@ export class ObjectExtractorNode extends Node {
                             data: {
                                 value: ""
                             }
-                        }
+                        };
                     }
                 })
             );
@@ -140,11 +152,14 @@ export class ObjectExtractorNode extends Node {
 
     remove(node: Node) {
         if (Object.keys(node.connectors).length > 2) {
-
         }
     }
 
-    static createFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): ObjectExtractorNode {
+    static createFromJson(
+        jsonObj: any,
+        nodeId: string,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+    ): ObjectExtractorNode {
         let node = new ObjectExtractorNode();
         Node.initFromJson(jsonObj, node);
         node.nodeId = nodeId;
@@ -159,7 +174,8 @@ export class ObjectExtractorNode extends Node {
         Object.keys(this.connectors).forEach((key: string, index: number) => {
             if (index <= 2) return;
             const paramName = this.connectors[key].data.value;
-            const val = "0" in inputs && paramName in inputs["0"] ? inputs["0"][paramName] : undefined;
+            const val =
+                "0" in inputs && paramName in inputs["0"] ? inputs["0"][paramName] : undefined;
             ret[key] = val;
         });
         return ret;

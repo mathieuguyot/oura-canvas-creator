@@ -22,7 +22,6 @@ import { TaskQueue } from "./nodes/node";
 let taskQueue: TaskQueue = new TaskQueue();
 
 const OuraCanvasApp = (): JSX.Element => {
-
     const [nodePickerPos, setNodePickerPos] = React.useState<XYPosition | null>(null);
     const [nodePickerOnMouseHover, setNodePickerOnMouseHover] = React.useState<boolean>(false);
     const [panZoomInfo, setPanZoomInfo] = React.useState<PanZoomModel>({
@@ -72,18 +71,17 @@ const OuraCanvasApp = (): JSX.Element => {
 
     const setSelectedItemsAndMoveSelectedNodeFront = useCallback((selection: SelectionItem[]) => {
         if (selection.length === 1 && selection[0].type === "node") {
-            setNodes(
-                (nodes: NodeCollection) => {
-                    const selectedNodeId = selection[0].id;
-                    const newNodes: NodeCollection = {};
-                    Object.keys(nodes).forEach(key => {
-                        if (key !== selectedNodeId) {
-                            newNodes[key] = nodes[key];
-                        }
-                    });
-                    newNodes[selectedNodeId] = nodes[selectedNodeId];
-                    return newNodes;
-                })
+            setNodes((nodes: NodeCollection) => {
+                const selectedNodeId = selection[0].id;
+                const newNodes: NodeCollection = {};
+                Object.keys(nodes).forEach((key) => {
+                    if (key !== selectedNodeId) {
+                        newNodes[key] = nodes[key];
+                    }
+                });
+                newNodes[selectedNodeId] = nodes[selectedNodeId];
+                return newNodes;
+            });
         }
         setSelectedItems(selection);
     }, []);
@@ -94,14 +92,16 @@ const OuraCanvasApp = (): JSX.Element => {
             const newNodes = produce(nodes, (draft: NodeCollection) => {
                 for (let key of Object.keys(nodes)) {
                     if (draft[key].name === "timer" && draft[key].connectors[1].data.value) {
-                        draft[key].connectors[0].data.value = (Number(draft[key].connectors[0].data.value) + 1).toString();
+                        draft[key].connectors[0].data.value = (
+                            Number(draft[key].connectors[0].data.value) + 1
+                        ).toString();
                         updated.push(key);
                     }
                 }
             });
             if (updated.length > 0) {
                 setNodes(newNodes);
-                updated.forEach(k => taskQueue.propagateNode(k, newNodes, links));
+                updated.forEach((k) => taskQueue.propagateNode(k, newNodes, links));
                 taskQueue.runAll(newNodes, links, setNodes);
             }
         }, 1000 / 60);
@@ -110,19 +110,20 @@ const OuraCanvasApp = (): JSX.Element => {
 
     const onNodeMove = React.useCallback(
         (id: string, newX: number, newY: number, newWidth: number) => {
-            setNodes(
-                nodes => produce(nodes, (draft: NodeCollection) => {
+            setNodes((nodes) =>
+                produce(nodes, (draft: NodeCollection) => {
                     draft[id].position = { x: newX, y: newY };
                     draft[id].width = newWidth;
                 })
             );
-        }, []
+        },
+        []
     );
 
     const onCreateLink = React.useCallback(
         (link: LinkModel) => {
-            setLinks(
-                links => produce(links, (draft) => {
+            setLinks((links) =>
+                produce(links, (draft) => {
                     draft[generateUuid()] = link;
                 })
             );
@@ -131,67 +132,78 @@ const OuraCanvasApp = (): JSX.Element => {
             });
             taskQueue.propagateNode(link.outputNodeId, nodes, newLinks);
             taskQueue.runAll(nodes, newLinks, setNodes);
-        }, [links, nodes]
+        },
+        [links, nodes]
     );
 
-    const onDeleteSelection = React.useCallback(
-        () => {
-            const deleteNodeIds = selectedItems.filter((value: SelectionItem) => value.type === "node").map((value) => value.id);
-            const deletedLinksIds = selectedItems.filter((value: SelectionItem) => value.type === "link").map((value) => value.id);
-            setNodes(
-                nodes => produce(nodes, (draft: NodeCollection) => {
-                    deleteNodeIds.forEach((id) => {
-                        delete draft[id];
-                    });
-                })
-            );
-            setLinks(
-                links => produce(links, (draft: LinkCollection) => {
-                    Object.keys(links).forEach(linkKey => {
-                        const link = links[linkKey];
-                        if (deleteNodeIds.includes(link.inputNodeId) || deleteNodeIds.includes(link.outputNodeId)) {
-                            delete draft[linkKey];
-                        }
-                    });
-                    deletedLinksIds.forEach((id) => {
-                        delete draft[id];
-                    });
-                })
-            );
-
-            const newNodes = produce(nodes, (draft: NodeCollection) => {
+    const onDeleteSelection = React.useCallback(() => {
+        const deleteNodeIds = selectedItems
+            .filter((value: SelectionItem) => value.type === "node")
+            .map((value) => value.id);
+        const deletedLinksIds = selectedItems
+            .filter((value: SelectionItem) => value.type === "link")
+            .map((value) => value.id);
+        setNodes((nodes) =>
+            produce(nodes, (draft: NodeCollection) => {
                 deleteNodeIds.forEach((id) => {
                     delete draft[id];
                 });
-            });
-            const nodeIdToRecompute: string[] = [];
-            const newLinks = produce(links, (draft: LinkCollection) => {
-                Object.keys(links).forEach(linkKey => {
+            })
+        );
+        setLinks((links) =>
+            produce(links, (draft: LinkCollection) => {
+                Object.keys(links).forEach((linkKey) => {
                     const link = links[linkKey];
-                    if (deleteNodeIds.includes(link.inputNodeId) || deleteNodeIds.includes(link.outputNodeId)) {
-                        if (deleteNodeIds.includes(link.outputNodeId) && !deleteNodeIds.includes(link.inputNodeId)) {
-                            nodeIdToRecompute.push(link.inputNodeId);
-                        }
+                    if (
+                        deleteNodeIds.includes(link.inputNodeId) ||
+                        deleteNodeIds.includes(link.outputNodeId)
+                    ) {
                         delete draft[linkKey];
                     }
                 });
                 deletedLinksIds.forEach((id) => {
                     delete draft[id];
                 });
+            })
+        );
+
+        const newNodes = produce(nodes, (draft: NodeCollection) => {
+            deleteNodeIds.forEach((id) => {
+                delete draft[id];
             });
-            // TODO purge taskQueue
-            //Object.keys(propagationValues).forEach(key => {
-            //    if (!(key in newLinks)) {
-            //        delete propagationValues[key];
-            //    }
-            //});
-            nodeIdToRecompute.forEach(nodeId => {
-                taskQueue.propagateNode(nodeId, newNodes, newLinks);
-                taskQueue.runAll(newNodes, newLinks, setNodes);
+        });
+        const nodeIdToRecompute: string[] = [];
+        const newLinks = produce(links, (draft: LinkCollection) => {
+            Object.keys(links).forEach((linkKey) => {
+                const link = links[linkKey];
+                if (
+                    deleteNodeIds.includes(link.inputNodeId) ||
+                    deleteNodeIds.includes(link.outputNodeId)
+                ) {
+                    if (
+                        deleteNodeIds.includes(link.outputNodeId) &&
+                        !deleteNodeIds.includes(link.inputNodeId)
+                    ) {
+                        nodeIdToRecompute.push(link.inputNodeId);
+                    }
+                    delete draft[linkKey];
+                }
             });
-        },
-        [selectedItems, nodes, links]
-    );
+            deletedLinksIds.forEach((id) => {
+                delete draft[id];
+            });
+        });
+        // TODO purge taskQueue
+        //Object.keys(propagationValues).forEach(key => {
+        //    if (!(key in newLinks)) {
+        //        delete propagationValues[key];
+        //    }
+        //});
+        nodeIdToRecompute.forEach((nodeId) => {
+            taskQueue.propagateNode(nodeId, newNodes, newLinks);
+            taskQueue.runAll(newNodes, newLinks, setNodes);
+        });
+    }, [selectedItems, nodes, links]);
 
     const [newNodeId, setNewNodeId] = useState<string | undefined>(undefined);
     useEffect(() => {
@@ -205,8 +217,8 @@ const OuraCanvasApp = (): JSX.Element => {
         (id: string) => {
             if (nodePickerPos) {
                 const newNodeId = generateUuid();
-                setNodes(
-                    nodes => produce(nodes, (draft) => {
+                setNodes((nodes) =>
+                    produce(nodes, (draft) => {
                         const jsonObj = JSON.parse(JSON.stringify(nodesSchemas[id]));
                         const newNode = createNodeFromJson(jsonObj, newNodeId, setNodes);
                         const newX =
@@ -229,8 +241,8 @@ const OuraCanvasApp = (): JSX.Element => {
 
     const onConnectorUpdate = React.useCallback(
         (nodeId: string, cId: string, connector: ConnectorModel) => {
-            setNodes(
-                nodes => produce(nodes, (draft) => {
+            setNodes((nodes) =>
+                produce(nodes, (draft) => {
                     draft[nodeId].connectors[cId] = connector;
                 })
             );
@@ -239,7 +251,8 @@ const OuraCanvasApp = (): JSX.Element => {
             });
             taskQueue.propagateNode(nodeId, newNodes, links);
             taskQueue.runAll(newNodes, links, setNodes);
-        }, [nodes, links]
+        },
+        [nodes, links]
     );
 
     const onContextMenu = React.useCallback(
@@ -255,27 +268,27 @@ const OuraCanvasApp = (): JSX.Element => {
         [nodePickerPos]
     );
 
-    const onMouseDown = React.useCallback(
-        () => {
-            if (nodePickerPos && !nodePickerOnMouseHover) {
-                setNodePickerOnMouseHover(false);
-                setNodePickerPos(null);
-            }
-        },
-        [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]
-    );
+    const onMouseDown = React.useCallback(() => {
+        if (nodePickerPos && !nodePickerOnMouseHover) {
+            setNodePickerOnMouseHover(false);
+            setNodePickerPos(null);
+        }
+    }, [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]);
 
     const onSaveButton = useCallback(() => {
         const data = {
-            "nodes": nodes,
-            "links": links
+            nodes: nodes,
+            links: links
         };
 
-        const element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(data)));
-        element.setAttribute('download', "oura-node-editor.json");
+        const element = document.createElement("a");
+        element.setAttribute(
+            "href",
+            "data:text/plain;charset=utf-8," + encodeURIComponent(JSON.stringify(data))
+        );
+        element.setAttribute("download", "oura-node-editor.json");
 
-        element.style.display = 'none';
+        element.style.display = "none";
         document.body.appendChild(element);
 
         element.click();
@@ -312,38 +325,43 @@ const OuraCanvasApp = (): JSX.Element => {
 
     let nodePicker = null;
     if (nodePickerPos && selectedItems.length === 0) {
-        nodePicker = <div
-            style={{
-                width: 640,
-                height: 500,
-                position: "absolute",
-                top: nodePickerPos.y,
-                left: nodePickerPos.x,
-                backgroundColor: "white"
-            }}>
-            <AddNodeContextualMenu
-                nodesSchema={nodesSchemas}
-                onNodeSelection={onNodeSelection}
-                onMouseHover={setNodePickerOnMouseHover}
-                createCustomConnectorComponent={createCustomConnectorsContents}
-            />
-        </div>;
-    }
-    else if (nodePickerPos) {
-        nodePicker = <div
-            style={{
-                width: 640,
-                height: 480,
-                position: "absolute",
-                top: nodePickerPos.y,
-                left: nodePickerPos.x,
-                backgroundColor: "white"
-            }}>
-            <SelectionManagementContextualMenu
-                onMouseHover={setNodePickerOnMouseHover}
-                onDeleteSelection={onDeleteSelection}
-            />
-        </div>
+        nodePicker = (
+            <div
+                style={{
+                    width: 640,
+                    height: 500,
+                    position: "absolute",
+                    top: nodePickerPos.y,
+                    left: nodePickerPos.x,
+                    backgroundColor: "white"
+                }}
+            >
+                <AddNodeContextualMenu
+                    nodesSchema={nodesSchemas}
+                    onNodeSelection={onNodeSelection}
+                    onMouseHover={setNodePickerOnMouseHover}
+                    createCustomConnectorComponent={createCustomConnectorsContents}
+                />
+            </div>
+        );
+    } else if (nodePickerPos) {
+        nodePicker = (
+            <div
+                style={{
+                    width: 640,
+                    height: 480,
+                    position: "absolute",
+                    top: nodePickerPos.y,
+                    left: nodePickerPos.x,
+                    backgroundColor: "white"
+                }}
+            >
+                <SelectionManagementContextualMenu
+                    onMouseHover={setNodePickerOnMouseHover}
+                    onDeleteSelection={onDeleteSelection}
+                />
+            </div>
+        );
     }
 
     const buttonStyle = {
@@ -364,7 +382,8 @@ const OuraCanvasApp = (): JSX.Element => {
                 style={{ width: "100%", height: "100%" }}
                 onContextMenu={onContextMenu}
                 onMouseDown={onMouseDown}
-                tabIndex={0}>
+                tabIndex={0}
+            >
                 <NodeEditor
                     panZoomInfo={panZoomInfo}
                     nodes={nodes}
@@ -379,10 +398,31 @@ const OuraCanvasApp = (): JSX.Element => {
                 />
                 {nodePicker}
             </div>
-            <button onClick={onSaveButton} style={{ position: "absolute", left: 5, bottom: 5, ...buttonStyle }}>save</button>
-            <label htmlFor="files" className="btn" style={{ position: "absolute", left: 55, bottom: 5, ...buttonStyle }}>load</label>
-            <input onChange={onLoadButton} id="files" style={{ visibility: "hidden" }} type="file" />
-            <button onClick={onResetButton} style={{ position: "absolute", right: 5, bottom: 5, ...buttonStyle }}>reset</button>
+            <button
+                onClick={onSaveButton}
+                style={{ position: "absolute", left: 5, bottom: 5, ...buttonStyle }}
+            >
+                save
+            </button>
+            <label
+                htmlFor="files"
+                className="btn"
+                style={{ position: "absolute", left: 55, bottom: 5, ...buttonStyle }}
+            >
+                load
+            </label>
+            <input
+                onChange={onLoadButton}
+                id="files"
+                style={{ visibility: "hidden" }}
+                type="file"
+            />
+            <button
+                onClick={onResetButton}
+                style={{ position: "absolute", right: 5, bottom: 5, ...buttonStyle }}
+            >
+                reset
+            </button>
         </>
     );
 };

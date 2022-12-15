@@ -17,7 +17,12 @@ import LogNode from "./log";
 import ArcNode from "./arc";
 import CheckNode from "./check";
 import BooleanNode from "./boolean";
-import { FunctionCallNode, FunctionInputNode, FunctionOutputNode, LambdaCallNode } from "./function";
+import {
+    FunctionCallNode,
+    FunctionInputNode,
+    FunctionOutputNode,
+    LambdaCallNode
+} from "./function";
 import ThreeJS from "./threejs";
 import ThreeJSBox from "./threejs_box";
 import RangeNode from "./range";
@@ -61,7 +66,11 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
     };
 }
 
-function createNodeFromJson(jsonObj: any, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): Node {
+function createNodeFromJson(
+    jsonObj: any,
+    nodeId: string,
+    setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+): Node {
     let node: Node | undefined = undefined;
     switch (jsonObj.name) {
         case NodeName.Canvas:
