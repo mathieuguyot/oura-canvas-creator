@@ -6,61 +6,70 @@ import produce from "immer";
 
 export default class ColorNode extends Node {
     constructor() {
-        super(NodeName.Color, 150, {x:0, y:0}, {
-            0: { 
-                name: "color", 
-                pinLayout: PinLayout.RIGHT_PIN, 
-                contentType: "canvas", 
-                data: { canvas_width: 150 - 30, canvas_height: 40, canvas_color: "black" },
-                rightPinColor: "orange"
-            },
-            1: { 
-                name: "red", 
-                pinLayout: PinLayout.LEFT_PIN, 
-                contentType: "number", 
-                data: { value: 0 } 
-            },
-            2: { 
-                name: "green", 
-                pinLayout: PinLayout.LEFT_PIN, 
-                contentType: "number", 
-                data: { value: 0 } 
-            },
-            3: { 
-                name: "blue", 
-                pinLayout: PinLayout.LEFT_PIN, 
-                contentType: "number", 
-                data: { value: 0 } 
-            },
-            4: { 
-                name: "alpha", 
-                pinLayout: PinLayout.LEFT_PIN, 
-                contentType: "number", 
-                data: { value: 1 } 
+        super(
+            NodeName.Color,
+            150,
+            { x: 0, y: 0 },
+            {
+                0: {
+                    name: "color",
+                    pinLayout: PinLayout.RIGHT_PIN,
+                    contentType: "canvas",
+                    data: { canvas_width: 150 - 30, canvas_height: 40, canvas_color: "black" },
+                    rightPinColor: "orange"
+                },
+                1: {
+                    name: "red",
+                    pinLayout: PinLayout.LEFT_PIN,
+                    contentType: "number",
+                    data: { value: 0 }
+                },
+                2: {
+                    name: "green",
+                    pinLayout: PinLayout.LEFT_PIN,
+                    contentType: "number",
+                    data: { value: 0 }
+                },
+                3: {
+                    name: "blue",
+                    pinLayout: PinLayout.LEFT_PIN,
+                    contentType: "number",
+                    data: { value: 0 }
+                },
+                4: {
+                    name: "alpha",
+                    pinLayout: PinLayout.LEFT_PIN,
+                    contentType: "number",
+                    data: { value: 1 }
+                }
             }
-        });
+        );
     }
 
-    static createFromJson(jsonObj: any) : ColorNode {
+    static createFromJson(jsonObj: any): ColorNode {
         let node = new ColorNode();
         Node.initFromJson(jsonObj, node);
         return node;
     }
 
-    computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>): { [id: string]: any } {
+    computeSpecific(
+        inputs: { [id: string]: any },
+        nodeId: string,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+    ): { [id: string]: any } {
         let red = "1" in inputs ? inputs[1] : this.connectors[1].data.value;
         let green = "2" in inputs ? inputs[2] : this.connectors[2].data.value;
         let blue = "3" in inputs ? inputs[3] : this.connectors[3].data.value;
         let alpha = "4" in inputs ? inputs[4] : this.connectors[4].data.value;
-        
+
         red = red > 255 ? 255 : red < 0 ? 0 : red;
         green = green > 255 ? 255 : green < 0 ? 0 : green;
         blue = blue > 255 ? 255 : blue < 0 ? 0 : blue;
         alpha = alpha > 1 ? 1 : alpha < 0 ? 0 : alpha;
         const colorCode = `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 
-        setNodes(
-            nodes => produce(nodes, (draft: NodeCollection) => {
+        setNodes((nodes) =>
+            produce(nodes, (draft: NodeCollection) => {
                 draft[nodeId].connectors[0].data.canvas_width = this.width - 30;
                 draft[nodeId].connectors[0].data.canvas_color = colorCode;
                 draft[nodeId].connectors[1].data.disabled = "1" in inputs;

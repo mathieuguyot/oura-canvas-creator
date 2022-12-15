@@ -1,51 +1,32 @@
 {
-  "name": "oura-canvas-creator",
-  "homepage": "https://mathieuguyot.github.io/oura-canvas-creator",
-  "version": "0.1.0",
-  "dependencies": {
-    "@types/jest": "^26.0.19",
-    "@types/lodash": "^4.14.166",
-    "@types/node": "^14.14.16",
-    "@types/react": "^17.0.0",
-    "@types/react-dom": "^17.0.0",
-    "@types/three": "^0.143.0",
-    "immer": "^8.0.0",
-    "lodash": "^4.17.20",
-    "oura-node-editor": "^0.1.2",
-    "rc-slider": "^9.7.1",
-    "react": "^18.2.0",
-    "react-color": "^2.19.3",
-    "react-dom": "^18.2.0",
-    "react-scripts": "4.0.3",
-    "three": "^0.143.0",
-    "typescript": "^4.5.5",
-    "web-vitals": "^1.0.1"
-  },
-  "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": "react-app"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
-  "devDependencies": {
-    "@types/react-color": "^3.0.4",
-    "gh-pages": "^3.2.3"
-  }
+    "name": "oura-canvas-creator",
+    "homepage": "https://mathieuguyot.github.io/oura-canvas-creator",
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d build"
+    },
+    "dependencies": {
+        "immer": "^9.0.16",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "three": "^0.147.0",
+        "oura-node-editor": "0.1.5"
+    },
+    "devDependencies": {
+        "@types/react": "^17.0.3",
+        "@types/react-dom": "^17.0.3",
+        "@types/three": "^0.146.0",
+        "@vitejs/plugin-react": "^3.0.0",
+        "eslint": "^8.29.0",
+        "eslint-config-react-app": "^7.0.1",
+        "prettier": "^2.8.1",
+        "typescript": "^4.9.3",
+        "vite": "^4.0.0",
+        "vite-plugin-eslint": "^1.8.1"
+    }
 }

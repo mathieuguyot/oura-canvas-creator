@@ -4,23 +4,27 @@ import { PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
 import produce from "immer";
 
-
 export class ShiftNode extends Node {
     constructor() {
-        super(NodeName.Shift, 170, { x: 0, y: 0 }, {
-            0: {
-                name: "array",
-                pinLayout: PinLayout.BOTH_PINS,
-                contentType: "none",
-                data: {}
-            },
-            1: {
-                name: "element",
-                pinLayout: PinLayout.RIGHT_PIN,
-                contentType: "none",
-                data: {}
+        super(
+            NodeName.Shift,
+            170,
+            { x: 0, y: 0 },
+            {
+                0: {
+                    name: "array",
+                    pinLayout: PinLayout.BOTH_PINS,
+                    contentType: "none",
+                    data: {}
+                },
+                1: {
+                    name: "element",
+                    pinLayout: PinLayout.RIGHT_PIN,
+                    contentType: "none",
+                    data: {}
+                }
             }
-        });
+        );
     }
 
     static createFromJson(json: string): ShiftNode {
@@ -44,20 +48,25 @@ export class ShiftNode extends Node {
 
 export class PopNode extends Node {
     constructor() {
-        super(NodeName.Pop, 170, { x: 0, y: 0 }, {
-            0: {
-                name: "array",
-                pinLayout: PinLayout.BOTH_PINS,
-                contentType: "none",
-                data: {}
-            },
-            1: {
-                name: "element",
-                pinLayout: PinLayout.RIGHT_PIN,
-                contentType: "none",
-                data: {}
+        super(
+            NodeName.Pop,
+            170,
+            { x: 0, y: 0 },
+            {
+                0: {
+                    name: "array",
+                    pinLayout: PinLayout.BOTH_PINS,
+                    contentType: "none",
+                    data: {}
+                },
+                1: {
+                    name: "element",
+                    pinLayout: PinLayout.RIGHT_PIN,
+                    contentType: "none",
+                    data: {}
+                }
             }
-        });
+        );
     }
 
     static createFromJson(json: string): PopNode {

@@ -33,15 +33,23 @@ function getInputsLinks(nodeId: string, links: LinkCollection): LinkCollection {
 
 function propagationDictToOrderedList(propagationDict: { [id: string]: number }): string[] {
     const propagationList: [string, number][] = [];
-    Object.keys(propagationDict).forEach(nodeId => propagationList.push([nodeId, propagationDict[nodeId]]));
+    Object.keys(propagationDict).forEach((nodeId) =>
+        propagationList.push([nodeId, propagationDict[nodeId]])
+    );
     propagationList.sort((a, b) => a[1] - b[1]);
     return propagationList.map(([nodeId, _]) => nodeId);
 }
 
-function createPropagationTree(nodeId: string, links: LinkCollection, depth: number, propagationDict: { [id: string]: number }): void {
-    propagationDict[nodeId] = nodeId in propagationDict ? Math.max(depth, propagationDict[nodeId]) : depth;
+function createPropagationTree(
+    nodeId: string,
+    links: LinkCollection,
+    depth: number,
+    propagationDict: { [id: string]: number }
+): void {
+    propagationDict[nodeId] =
+        nodeId in propagationDict ? Math.max(depth, propagationDict[nodeId]) : depth;
     const outputLinks = getOutputLinks(nodeId, links);
-    Object.keys(outputLinks).forEach(linkKey => {
+    Object.keys(outputLinks).forEach((linkKey) => {
         createPropagationTree(links[linkKey].inputNodeId, links, depth + 1, propagationDict);
     });
 }
@@ -52,7 +60,7 @@ type FunctionCall = {
     inputs: { [id: string]: any };
     alreadyComputedNodes: string[];
     toBeComputed: [string, boolean][];
-}
+};
 
 export class TaskQueue {
     protected tasks: [string, boolean][] = [];
@@ -88,17 +96,17 @@ export class TaskQueue {
             inputs: fIns,
             propagationValues: {},
             alreadyComputedNodes: [],
-            toBeComputed: [[fOutId, false]],
+            toBeComputed: [[fOutId, false]]
         });
     }
 
     propagateAll(nodes: NodeCollection, links: LinkCollection) {
         const propagationDict: { [id: string]: number } = {};
-        Object.keys(nodes).forEach(nodeId => {
+        Object.keys(nodes).forEach((nodeId) => {
             createPropagationTree(nodeId, links, 0, propagationDict);
         });
         const propagationList = propagationDictToOrderedList(propagationDict);
-        propagationList.forEach(v => this.tasks.push([v, false]));
+        propagationList.forEach((v) => this.tasks.push([v, false]));
     }
 
     propagateNode(nodeId: string, nodes: NodeCollection, links: LinkCollection) {
@@ -107,7 +115,7 @@ export class TaskQueue {
         const propagationList = propagationDictToOrderedList(propagationDict);
 
         let fOutId = "";
-        propagationList.forEach(k => {
+        propagationList.forEach((k) => {
             if (nodes[k].name === NodeName.FunctionOutputNode) {
                 fOutId = k;
             }
@@ -118,7 +126,7 @@ export class TaskQueue {
             // Search associate function input
             const fOutIdLinks = getInputsLinks(fOutId, links);
             let fInId = "";
-            Object.keys(fOutIdLinks).forEach(k => {
+            Object.keys(fOutIdLinks).forEach((k) => {
                 if (links[k].inputPinId === "0") {
                     fInId = links[k].outputNodeId;
                 }
@@ -129,27 +137,40 @@ export class TaskQueue {
                 const funName = fIn.connectors["0"].data.value;
                 const functionCallersNodeIds: string[] = [];
                 // Find each function caller and call them
-                Object.keys(nodes).forEach(k => {
-                    if (nodes[k].name === NodeName.FunctionCallNode && nodes[k].connectors["0"].data.value === funName) {
+                Object.keys(nodes).forEach((k) => {
+                    if (
+                        nodes[k].name === NodeName.FunctionCallNode &&
+                        nodes[k].connectors["0"].data.value === funName
+                    ) {
                         functionCallersNodeIds.push(k);
                     }
-                    if (nodes[k].name === NodeName.Map && nodes[k].connectors["2"].data.value === funName) {
+                    if (
+                        nodes[k].name === NodeName.Map &&
+                        nodes[k].connectors["2"].data.value === funName
+                    ) {
                         functionCallersNodeIds.push(k);
                     }
-                    if (nodes[k].name === NodeName.LambdaCall && nodes[k].connectors["0"].data.value === funName) {
+                    if (
+                        nodes[k].name === NodeName.LambdaCall &&
+                        nodes[k].connectors["0"].data.value === funName
+                    ) {
                         functionCallersNodeIds.push(k);
                     }
                 });
-                functionCallersNodeIds.forEach(k => this.propagateNode(k, nodes, links));
+                functionCallersNodeIds.forEach((k) => this.propagateNode(k, nodes, links));
             }
         }
         // Else, run nominal transformation
         else {
-            propagationList.forEach(v => this.tasks.push([v, false]));
+            propagationList.forEach((v) => this.tasks.push([v, false]));
         }
     }
 
-    runAll(nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>) {
+    runAll(
+        nodes: NodeCollection,
+        links: LinkCollection,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+    ) {
         while (this.functionCalls.length > 0 || this.tasks.length > 0) {
             if (this.functionCalls.length > 0) {
                 this.runFunctionTask(nodes, links, setNodes);
@@ -159,25 +180,32 @@ export class TaskQueue {
         }
     }
 
-    runFunctionTask(nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>) {
+    runFunctionTask(
+        nodes: NodeCollection,
+        links: LinkCollection,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+    ) {
         const functionCall = this.functionCalls[0];
         const nodeId = functionCall.toBeComputed[0][0];
 
         if (nodeId) {
             const node = nodes[nodeId] as Node;
             const outputsLinks = getInputsLinks(nodeId, links);
-            const outputsNodes = Object.keys(outputsLinks).map(k => {
+            const outputsNodes = Object.keys(outputsLinks).map((k) => {
                 return links[k].outputNodeId;
             });
 
             let readyToCompute = true;
             if (node.name === NodeName.IfElse) {
-                Object.keys(outputsLinks).forEach(ifLinkId => {
+                Object.keys(outputsLinks).forEach((ifLinkId) => {
                     if (links[ifLinkId].inputPinId === "1") {
                         if (ifLinkId in functionCall.propagationValues) {
                             const res = functionCall.propagationValues[ifLinkId] as boolean;
-                            Object.keys(outputsLinks).forEach(k => {
-                                if ((links[k].inputPinId === "2" && res) || (links[k].inputPinId === "3" && !res)) {
+                            Object.keys(outputsLinks).forEach((k) => {
+                                if (
+                                    (links[k].inputPinId === "2" && res) ||
+                                    (links[k].inputPinId === "3" && !res)
+                                ) {
                                     const id = links[k].outputNodeId;
                                     if (!functionCall.alreadyComputedNodes.includes(id)) {
                                         readyToCompute = false;
@@ -187,14 +215,17 @@ export class TaskQueue {
                             });
                         } else {
                             readyToCompute = false;
-                            functionCall.toBeComputed.unshift([links[ifLinkId].outputNodeId, false]);
+                            functionCall.toBeComputed.unshift([
+                                links[ifLinkId].outputNodeId,
+                                false
+                            ]);
                         }
                     }
                 });
             } else {
                 outputsNodes.forEach((depNodeId) => {
                     if (!functionCall.alreadyComputedNodes.includes(depNodeId)) {
-                        readyToCompute = false
+                        readyToCompute = false;
                         functionCall.toBeComputed.unshift([depNodeId, false]);
                     }
                 });
@@ -222,16 +253,31 @@ export class TaskQueue {
                 });
                 // Computing current node
                 if (!functionCall.toBeComputed[0][1]) {
-                    functionCall.toBeComputed[0][1] = node.registerfunctionRun(inputValues, nodeId, setNodes, nodes, links, this);
+                    functionCall.toBeComputed[0][1] = node.registerfunctionRun(
+                        inputValues,
+                        nodeId,
+                        setNodes,
+                        nodes,
+                        links,
+                        this
+                    );
                     if (functionCall.toBeComputed[0][1]) {
                         return;
                     }
                 }
-                const outputValues = node.computeSpecific(node.name === NodeName.FunctionInputNode ? functionCall.inputs : inputValues, nodeId, setNodes, nodes, links, this);
+                const outputValues = node.computeSpecific(
+                    node.name === NodeName.FunctionInputNode ? functionCall.inputs : inputValues,
+                    nodeId,
+                    setNodes,
+                    nodes,
+                    links,
+                    this
+                );
                 // Adding values to propagationValues
                 const ouputsLinks = getOutputLinks(nodeId, links);
                 Object.keys(ouputsLinks).forEach((linkId) => {
-                    functionCall.propagationValues[linkId] = outputValues[links[linkId].outputPinId];
+                    functionCall.propagationValues[linkId] =
+                        outputValues[links[linkId].outputPinId];
                 });
                 functionCall.alreadyComputedNodes.push(nodeId);
                 functionCall.toBeComputed.shift();
@@ -240,7 +286,9 @@ export class TaskQueue {
             if (functionCall.toBeComputed.length === 0) {
                 const fLinkResId = Object.keys(links).find((key) => {
                     const link = links[key];
-                    return link.inputNodeId === functionCall.functionOutId && link.inputPinId === "1";
+                    return (
+                        link.inputNodeId === functionCall.functionOutId && link.inputPinId === "1"
+                    );
                 });
                 if (fLinkResId && fLinkResId in functionCall.propagationValues) {
                     this.functionResults.push(functionCall.propagationValues[fLinkResId]);
@@ -253,7 +301,11 @@ export class TaskQueue {
         }
     }
 
-    runTask(nodes: NodeCollection, links: LinkCollection, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>) {
+    runTask(
+        nodes: NodeCollection,
+        links: LinkCollection,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>
+    ) {
         const propagingNodeId = this.tasks[0];
         if (propagingNodeId) {
             const node = nodes[propagingNodeId[0]] as Node;
@@ -276,12 +328,26 @@ export class TaskQueue {
             });
             // Executing
             if (!propagingNodeId[1]) {
-                this.tasks[0][1] = node.registerfunctionRun(inputValues, propagingNodeId[0], setNodes, nodes, links, this);
+                this.tasks[0][1] = node.registerfunctionRun(
+                    inputValues,
+                    propagingNodeId[0],
+                    setNodes,
+                    nodes,
+                    links,
+                    this
+                );
                 if (this.tasks[0][1]) {
                     return;
                 }
             }
-            const outputValues = node.computeSpecific(inputValues, propagingNodeId[0], setNodes, nodes, links, this);
+            const outputValues = node.computeSpecific(
+                inputValues,
+                propagingNodeId[0],
+                setNodes,
+                nodes,
+                links,
+                this
+            );
             // Adding values to propagationValues
             const ouputsLinks = getOutputLinks(propagingNodeId[0], links);
             Object.keys(ouputsLinks).forEach((linkId) => {
@@ -290,7 +356,7 @@ export class TaskQueue {
             this.tasks.shift();
         }
     }
-};
+}
 
 export default abstract class Node implements NodeModel {
     [immerable] = true;
@@ -299,7 +365,12 @@ export default abstract class Node implements NodeModel {
     public width: number;
     public connectors: ConnectorCollection;
 
-    constructor(name: string, width: number, position: XYPosition, connectors: ConnectorCollection) {
+    constructor(
+        name: string,
+        width: number,
+        position: XYPosition,
+        connectors: ConnectorCollection
+    ) {
         this.name = name;
         this.width = width;
         this.position = position;
@@ -313,8 +384,22 @@ export default abstract class Node implements NodeModel {
         node.connectors = jsonObj.connectors;
     }
 
-    public registerfunctionRun(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): boolean {
+    public registerfunctionRun(
+        inputs: { [id: string]: any },
+        nodeId: string,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>,
+        nodes: NodeCollection,
+        links: LinkCollection,
+        queue: TaskQueue
+    ): boolean {
         return false;
     }
-    abstract computeSpecific(inputs: { [id: string]: any }, nodeId: string, setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>, nodes: NodeCollection, links: LinkCollection, queue: TaskQueue): { [id: string]: any };
+    abstract computeSpecific(
+        inputs: { [id: string]: any },
+        nodeId: string,
+        setNodes: React.Dispatch<React.SetStateAction<NodeCollection>>,
+        nodes: NodeCollection,
+        links: LinkCollection,
+        queue: TaskQueue
+    ): { [id: string]: any };
 }
