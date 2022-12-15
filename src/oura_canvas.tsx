@@ -283,7 +283,7 @@ const OuraCanvasApp = (): JSX.Element => {
         document.body.removeChild(element);
     }, [nodes, links]);
 
-    const onLoadButton = useCallback((evt) => {
+    const onLoadButton = useCallback((evt: any) => {
         taskQueue.reset();
         if (evt.target.files.size < 1) {
             return;
