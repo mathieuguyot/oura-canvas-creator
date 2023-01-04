@@ -8,10 +8,11 @@ export default class ArcNode extends Node {
     constructor() {
         super(
             NodeName.Arc,
+            "canvas",
             200,
             { x: 0, y: 0 },
             {
-                0: { name: "draw", pinLayout: PinLayout.RIGHT_PIN, contentType: "none", data: {} },
+                0: { name: "xraw", pinLayout: PinLayout.RIGHT_PIN, contentType: "none", data: {} },
                 1: {
                     name: "x",
                     pinLayout: PinLayout.LEFT_PIN,

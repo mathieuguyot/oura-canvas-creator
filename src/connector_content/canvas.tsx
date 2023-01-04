@@ -17,6 +17,7 @@ const Canvas = (props: ConnectorContentProps): JSX.Element => {
         <>
             <div
                 style={{
+                    marginTop: 3,
                     position: "absolute",
                     zIndex: 0.1,
                     backgroundColor: props.connector.data.canvas_color,
@@ -25,7 +26,7 @@ const Canvas = (props: ConnectorContentProps): JSX.Element => {
                 }}
             ></div>
             <canvas
-                style={{ position: "relative", imageRendering: "auto" }}
+                style={{ marginTop: 3, position: "relative", imageRendering: "auto" }}
                 width={props.connector.data.canvas_width}
                 height={props.connector.data.canvas_height}
                 ref={canvasRef}

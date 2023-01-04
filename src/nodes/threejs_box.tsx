@@ -10,6 +10,7 @@ export default class ThreeJSBox extends Node {
     constructor() {
         super(
             NodeName.ThreeJSBox,
+            "experimental",
             170,
             { x: 0, y: 0 },
             {

@@ -8,27 +8,28 @@ export default class CanvasNode extends Node {
     constructor() {
         super(
             NodeName.Canvas,
-            430,
+            "canvas",
+            330,
             { x: 0, y: 0 },
             {
                 0: {
                     name: "draw",
                     pinLayout: PinLayout.LEFT_PIN,
                     contentType: "canvas",
-                    data: { canvas_width: 400, canvas_height: 400, canvas_color: "white" },
+                    data: { canvas_width: 300, canvas_height: 300, canvas_color: "white" },
                     isMultiInputAllowed: true
                 },
                 1: {
                     name: "width",
                     pinLayout: PinLayout.LEFT_PIN,
                     contentType: "number",
-                    data: { value: 400 }
+                    data: { value: 300 }
                 },
                 2: {
                     name: "height",
                     pinLayout: PinLayout.LEFT_PIN,
                     contentType: "number",
-                    data: { value: 400 }
+                    data: { value: 300 }
                 },
                 3: {
                     name: "color",

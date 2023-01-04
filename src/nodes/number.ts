@@ -7,6 +7,7 @@ export default class NumberNode extends Node {
     constructor() {
         super(
             NodeName.Number,
+            "math",
             170,
             { x: 0, y: 0 },
             {

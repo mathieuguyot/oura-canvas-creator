@@ -8,6 +8,7 @@ export class ShiftNode extends Node {
     constructor() {
         super(
             NodeName.Shift,
+            "array",
             170,
             { x: 0, y: 0 },
             {
@@ -50,6 +51,7 @@ export class PopNode extends Node {
     constructor() {
         super(
             NodeName.Pop,
+            "array",
             170,
             { x: 0, y: 0 },
             {

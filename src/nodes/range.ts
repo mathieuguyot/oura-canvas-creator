@@ -8,6 +8,7 @@ export default class RangeNode extends Node {
     constructor() {
         super(
             NodeName.Range,
+            "array",
             170,
             { x: 0, y: 0 },
             {

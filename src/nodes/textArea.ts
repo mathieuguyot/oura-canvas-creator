@@ -7,6 +7,7 @@ export default class TextAreaNode extends Node {
     constructor() {
         super(
             NodeName.TextArea,
+            "string",
             100,
             { x: 0, y: 0 },
             {

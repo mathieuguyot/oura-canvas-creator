@@ -7,6 +7,7 @@ export default class StringNode extends Node {
     constructor() {
         super(
             NodeName.String,
+            "string",
             100,
             { x: 0, y: 0 },
             {

@@ -8,6 +8,7 @@ export default class ThreeJS extends Node {
     constructor() {
         super(
             NodeName.ThreeJS,
+            "experimental",
             170,
             { x: 0, y: 0 },
             {

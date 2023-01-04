@@ -7,6 +7,7 @@ export default class TimerNode extends Node {
     constructor() {
         super(
             NodeName.Timer,
+            "general",
             150,
             { x: 0, y: 0 },
             {
