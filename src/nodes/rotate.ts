@@ -8,6 +8,7 @@ export default class RotateNode extends Node {
     constructor() {
         super(
             NodeName.Rotate,
+            "canvas",
             150,
             { x: 0, y: 0 },
             {

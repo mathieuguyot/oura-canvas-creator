@@ -8,6 +8,7 @@ export default class IfElseNode extends Node {
     constructor() {
         super(
             NodeName.IfElse,
+            "general",
             100,
             { x: 0, y: 0 },
             {

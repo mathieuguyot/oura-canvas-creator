@@ -7,6 +7,7 @@ export default class SplitNode extends Node {
     constructor() {
         super(
             NodeName.Split,
+            "string",
             100,
             { x: 0, y: 0 },
             {

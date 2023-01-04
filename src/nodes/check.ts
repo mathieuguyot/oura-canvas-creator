@@ -8,6 +8,7 @@ export default class CheckNode extends Node {
     constructor() {
         super(
             NodeName.Check,
+            "boolean",
             160,
             { x: 0, y: 0 },
             {

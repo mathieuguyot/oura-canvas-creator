@@ -8,6 +8,7 @@ export class MapNode extends Node {
     constructor() {
         super(
             NodeName.Map,
+            "array",
             150,
             { x: 0, y: 0 },
             {

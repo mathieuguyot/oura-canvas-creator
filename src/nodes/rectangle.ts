@@ -8,6 +8,7 @@ export default class RectangleNode extends Node {
     constructor() {
         super(
             NodeName.Rectangle,
+            "canvas",
             200,
             { x: 0, y: 0 },
             {

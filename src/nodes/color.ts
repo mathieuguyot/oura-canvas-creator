@@ -8,6 +8,7 @@ export default class ColorNode extends Node {
     constructor() {
         super(
             NodeName.Color,
+            "canvas",
             150,
             { x: 0, y: 0 },
             {
@@ -21,20 +22,20 @@ export default class ColorNode extends Node {
                 1: {
                     name: "red",
                     pinLayout: PinLayout.LEFT_PIN,
-                    contentType: "number",
-                    data: { value: 0 }
+                    contentType: "range",
+                    data: { value: 0, min: 0, max: 255 }
                 },
                 2: {
                     name: "green",
                     pinLayout: PinLayout.LEFT_PIN,
-                    contentType: "number",
-                    data: { value: 0 }
+                    contentType: "range",
+                    data: { value: 0, min: 0, max: 255 }
                 },
                 3: {
                     name: "blue",
                     pinLayout: PinLayout.LEFT_PIN,
-                    contentType: "number",
-                    data: { value: 0 }
+                    contentType: "range",
+                    data: { value: 0, min: 0, max: 255 }
                 },
                 4: {
                     name: "alpha",

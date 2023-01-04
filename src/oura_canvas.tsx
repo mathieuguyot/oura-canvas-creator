@@ -364,18 +364,6 @@ const OuraCanvasApp = (): JSX.Element => {
         );
     }
 
-    const buttonStyle = {
-        font: "bold 11px Arial",
-        textDecoration: "none",
-        backgroundColor: "#EEEEEE",
-        color: "#333333",
-        padding: "2px 6px 2px 6px",
-        borderTop: "1px solid #CCCCCC",
-        borderRight: "1px solid #333333",
-        borderBottom: "1px solid #333333",
-        borderLeft: "1px solid #CCCCCC"
-    };
-
     return (
         <>
             <div
@@ -400,14 +388,15 @@ const OuraCanvasApp = (): JSX.Element => {
             </div>
             <button
                 onClick={onSaveButton}
-                style={{ position: "absolute", left: 5, bottom: 5, ...buttonStyle }}
+                className="input btn-primary input-xs focus:outline-0"
+                style={{ position: "absolute", left: 5, bottom: 5 }}
             >
                 save
             </button>
             <label
                 htmlFor="files"
-                className="btn"
-                style={{ position: "absolute", left: 55, bottom: 5, ...buttonStyle }}
+                className="input btn-primary input-xs focus:outline-0"
+                style={{ position: "absolute", left: 55, bottom: 5 }}
             >
                 load
             </label>
@@ -419,7 +408,8 @@ const OuraCanvasApp = (): JSX.Element => {
             />
             <button
                 onClick={onResetButton}
-                style={{ position: "absolute", right: 5, bottom: 5, ...buttonStyle }}
+                className="input btn-primary input-xs focus:outline-0"
+                style={{ position: "absolute", right: 5, bottom: 5 }}
             >
                 reset
             </button>

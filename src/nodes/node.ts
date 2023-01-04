@@ -364,14 +364,17 @@ export default abstract class Node implements NodeModel {
     public position: XYPosition;
     public width: number;
     public connectors: ConnectorCollection;
+    public category: string;
 
     constructor(
         name: string,
+        category: string,
         width: number,
         position: XYPosition,
         connectors: ConnectorCollection
     ) {
         this.name = name;
+        this.category = category;
         this.width = width;
         this.position = position;
         this.connectors = connectors;
@@ -379,6 +382,7 @@ export default abstract class Node implements NodeModel {
 
     static initFromJson(jsonObj: any, node: Node) {
         node.name = jsonObj.name;
+        node.category = jsonObj.category;
         node.width = jsonObj.width;
         node.position = jsonObj.position;
         node.connectors = jsonObj.connectors;

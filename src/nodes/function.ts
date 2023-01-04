@@ -9,6 +9,7 @@ export class FunctionCallNode extends Node {
     constructor() {
         super(
             NodeName.FunctionCallNode,
+            "general",
             150,
             { x: 0, y: 0 },
             {
@@ -143,6 +144,7 @@ export class FunctionInputNode extends Node {
     constructor() {
         super(
             NodeName.FunctionInputNode,
+            "general",
             150,
             { x: 0, y: 0 },
             {
@@ -227,6 +229,7 @@ export class FunctionOutputNode extends Node {
     constructor() {
         super(
             NodeName.FunctionOutputNode,
+            "general",
             150,
             { x: 0, y: 0 },
             {
@@ -269,6 +272,7 @@ export class LambdaCallNode extends Node {
     constructor() {
         super(
             NodeName.LambdaCall,
+            "general",
             150,
             { x: 0, y: 0 },
             {

@@ -8,6 +8,7 @@ export default class OperationNode extends Node {
     constructor() {
         super(
             NodeName.Operation,
+            "math",
             160,
             { x: 0, y: 0 },
             {

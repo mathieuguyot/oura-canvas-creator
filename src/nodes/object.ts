@@ -10,6 +10,7 @@ export class ObjectCreatorNode extends Node {
     constructor() {
         super(
             NodeName.ObjectCreatorNode,
+            "object",
             150,
             { x: 0, y: 0 },
             {
@@ -98,6 +99,7 @@ export class ObjectExtractorNode extends Node {
     constructor() {
         super(
             NodeName.ObjectExtractorNode,
+            "object",
             150,
             { x: 0, y: 0 },
             {

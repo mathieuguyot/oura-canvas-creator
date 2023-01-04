@@ -8,6 +8,7 @@ export default class LengthNode extends Node {
     constructor() {
         super(
             NodeName.Length,
+            "array",
             170,
             { x: 0, y: 0 },
             {

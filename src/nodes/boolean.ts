@@ -8,6 +8,7 @@ export default class BooleanNode extends Node {
     constructor() {
         super(
             NodeName.Boolean,
+            "boolean",
             160,
             { x: 0, y: 0 },
             {

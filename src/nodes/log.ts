@@ -10,6 +10,7 @@ export default class LogNode extends Node {
     constructor() {
         super(
             NodeName.Log,
+            "general",
             100,
             { x: 0, y: 0 },
             {

@@ -8,6 +8,7 @@ export default class TranslateNode extends Node {
     constructor() {
         super(
             NodeName.Translate,
+            "canvas",
             100,
             { x: 0, y: 0 },
             {
