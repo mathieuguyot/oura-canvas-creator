@@ -268,7 +268,7 @@ export class TaskQueue {
                 const outputValues = node.computeSpecific(
                     node.name === NodeName.FunctionInputNode ? functionCall.inputs : inputValues,
                     nodeId,
-                    setNodes,
+                    () => {},
                     nodes,
                     links,
                     this
