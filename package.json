@@ -11,25 +11,23 @@
         "deploy": "gh-pages -d build"
     },
     "dependencies": {
-        "immer": "^9.0.16",
+        "immer": "^9.0.21",
         "oura-node-editor": "0.1.5",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
-        "three": "^0.147.0"
-    },
-    "devDependencies": {
-        "@types/react": "^17.0.3",
-        "@types/react-dom": "^17.0.3",
-        "@types/three": "^0.146.0",
-        "@vitejs/plugin-react": "^3.0.0",
-        "daisyui": "^2.46.0",
-        "eslint": "^8.29.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "three": "^0.151.3",
+        "@types/react": "^18.0.35",
+        "@types/react-dom": "^18.0.11",
+        "@types/three": "^0.150.1",
+        "@vitejs/plugin-react": "^3.1.0",
+        "daisyui": "^2.51.5",
+        "eslint": "^8.38.0",
         "eslint-config-react-app": "^7.0.1",
-        "postcss": "^8.4.20",
-        "prettier": "^2.8.1",
-        "tailwindcss": "^3.2.4",
-        "typescript": "^4.9.3",
-        "vite": "^4.0.0",
+        "postcss": "^8.4.21",
+        "prettier": "^2.8.7",
+        "tailwindcss": "^3.3.1",
+        "typescript": "^5.0.4",
+        "vite": "^4.2.1",
         "vite-plugin-eslint": "^1.8.1"
     }
 }
