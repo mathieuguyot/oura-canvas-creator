@@ -4,7 +4,6 @@ import { produce } from "immer";
 import {
     NodeEditor,
     LinkModel,
-    PanZoomModel,
     generateUuid,
     ConnectorModel,
     NodeCollection,
@@ -13,26 +12,45 @@ import {
     XYPosition,
     SelectionItem,
     AddNodeContextualMenu,
-    SelectionManagementContextualMenu
+    SelectionManagementContextualMenu,
+    useNodeEditor
 } from "oura-node-editor";
 import { createNodeFromJson, createNodeSchema } from "./nodes";
 import { createCustomConnectorsContents } from "./connector_content";
 import { TaskQueue } from "./nodes/node";
+import { useLocalStorage, useSaveLoadReset } from "./custom_hooks";
+import BottomActions from "./bottom_actions";
 
 let taskQueue: TaskQueue = new TaskQueue();
 
 const OuraCanvasApp = (): JSX.Element => {
-    const [nodePickerPos, setNodePickerPos] = React.useState<XYPosition | null>(null);
-    const [nodePickerOnMouseHover, setNodePickerOnMouseHover] = React.useState<boolean>(false);
-    const [panZoomInfo, setPanZoomInfo] = React.useState<PanZoomModel>({
-        zoom: 1,
-        topLeftCorner: { x: 0, y: 0 }
-    });
-    const [selectedItems, setSelectedItems] = React.useState<SelectionItem[]>([]);
-    const [nodes, setNodes] = React.useState<NodeCollection>({});
-    const [links, setLinks] = React.useState<LinkCollection>({});
+    const {
+        nodes,
+        links,
+        panZoomInfo,
+        selectedItems,
+        setNodes,
+        setLinks,
+        onNodeMove,
+        setPanZoomInfo,
+        setSelectedItems
+    } = useNodeEditor();
 
-    const [runFirstPropagation, setRunFirstPropagation] = React.useState(false);
+    const [runFirstPropagation, setRunFirstPropagation] = useState(false);
+
+    useLocalStorage(nodes, links);
+    const { onSave, onLoad, onReset } = useSaveLoadReset(
+        nodes,
+        links,
+        setNodes,
+        setLinks,
+        setRunFirstPropagation,
+        taskQueue
+    );
+
+    const [nodePickerPos, setNodePickerPos] = useState<XYPosition | null>(null);
+    const [nodePickerOnMouseHover, setNodePickerOnMouseHover] = useState<boolean>(false);
+
     useEffect(() => {
         const locallyStoredNodes = localStorage.getItem("nodes");
         const locallyStoredLinks = localStorage.getItem("links");
@@ -46,47 +64,19 @@ const OuraCanvasApp = (): JSX.Element => {
         setLinks(initLinks);
         setNodes(initNodes);
         setRunFirstPropagation(true);
-    }, []);
+    }, [setLinks, setNodes]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (runFirstPropagation) {
             setRunFirstPropagation(false);
             taskQueue.propagateAll(nodes, links);
             taskQueue.runAll(nodes, links, setNodes);
         }
-    }, [runFirstPropagation, links, nodes]);
-
-    useEffect(() => {
-        if (Object.keys(nodes).length > 0) {
-            localStorage.setItem("nodes", JSON.stringify(nodes));
-        }
-    }, [nodes]);
-    useEffect(() => {
-        if (Object.keys(links).length > 0) {
-            localStorage.setItem("links", JSON.stringify(links));
-        }
-    }, [links]);
+    }, [runFirstPropagation, links, nodes, setNodes]);
 
     const nodesSchemas: { [nId: string]: NodeModel } = createNodeSchema();
 
-    const setSelectedItemsAndMoveSelectedNodeFront = useCallback((selection: SelectionItem[]) => {
-        if (selection.length === 1 && selection[0].type === "node") {
-            setNodes((nodes: NodeCollection) => {
-                const selectedNodeId = selection[0].id;
-                const newNodes: NodeCollection = {};
-                Object.keys(nodes).forEach((key) => {
-                    if (key !== selectedNodeId) {
-                        newNodes[key] = nodes[key];
-                    }
-                });
-                newNodes[selectedNodeId] = nodes[selectedNodeId];
-                return newNodes;
-            });
-        }
-        setSelectedItems(selection);
-    }, []);
-
-    React.useEffect(() => {
+    useEffect(() => {
         const interval = setInterval(() => {
             const updated: string[] = [];
             const newNodes = produce(nodes, (draft: NodeCollection) => {
@@ -106,21 +96,9 @@ const OuraCanvasApp = (): JSX.Element => {
             }
         }, 1000 / 60);
         return () => clearInterval(interval);
-    }, [nodes, links]);
+    }, [nodes, links, setNodes]);
 
-    const onNodeMove = React.useCallback(
-        (id: string, newX: number, newY: number, newWidth: number) => {
-            setNodes((nodes) =>
-                produce(nodes, (draft: NodeCollection) => {
-                    draft[id].position = { x: newX, y: newY };
-                    draft[id].width = newWidth;
-                })
-            );
-        },
-        []
-    );
-
-    const onCreateLink = React.useCallback(
+    const onCreateLink = useCallback(
         (link: LinkModel) => {
             setLinks((links) =>
                 produce(links, (draft) => {
@@ -133,10 +111,10 @@ const OuraCanvasApp = (): JSX.Element => {
             taskQueue.propagateNode(link.outputNodeId, nodes, newLinks);
             taskQueue.runAll(nodes, newLinks, setNodes);
         },
-        [links, nodes]
+        [links, nodes, setLinks, setNodes]
     );
 
-    const onDeleteSelection = React.useCallback(() => {
+    const onDeleteSelection = useCallback(() => {
         const deleteNodeIds = selectedItems
             .filter((value: SelectionItem) => value.type === "node")
             .map((value) => value.id);
@@ -203,7 +181,7 @@ const OuraCanvasApp = (): JSX.Element => {
             taskQueue.propagateNode(nodeId, newNodes, newLinks);
             taskQueue.runAll(newNodes, newLinks, setNodes);
         });
-    }, [selectedItems, nodes, links]);
+    }, [selectedItems, setNodes, setLinks, nodes, links]);
 
     const [newNodeId, setNewNodeId] = useState<string | undefined>(undefined);
     useEffect(() => {
@@ -212,8 +190,9 @@ const OuraCanvasApp = (): JSX.Element => {
             taskQueue.runAll(nodes, links, setNodes);
             setNewNodeId(undefined);
         }
-    }, [newNodeId, nodes, links]);
-    const onNodeSelection = React.useCallback(
+    }, [newNodeId, nodes, links, setNodes]);
+
+    const onNodeSelection = useCallback(
         (id: string) => {
             if (nodePickerPos) {
                 const newNodeId = generateUuid();
@@ -236,10 +215,17 @@ const OuraCanvasApp = (): JSX.Element => {
                 setNodePickerPos(null);
             }
         },
-        [panZoomInfo, nodePickerPos, nodesSchemas]
+        [
+            nodePickerPos,
+            setNodes,
+            nodesSchemas,
+            panZoomInfo.topLeftCorner.x,
+            panZoomInfo.topLeftCorner.y,
+            panZoomInfo.zoom
+        ]
     );
 
-    const onConnectorUpdate = React.useCallback(
+    const onConnectorUpdate = useCallback(
         (nodeId: string, cId: string, connector: ConnectorModel) => {
             setNodes((nodes) =>
                 produce(nodes, (draft) => {
@@ -252,10 +238,10 @@ const OuraCanvasApp = (): JSX.Element => {
             taskQueue.propagateNode(nodeId, newNodes, links);
             taskQueue.runAll(newNodes, links, setNodes);
         },
-        [nodes, links]
+        [setNodes, nodes, links]
     );
 
-    const onContextMenu = React.useCallback(
+    const onContextMenu = useCallback(
         (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
             event.preventDefault();
             if (!nodePickerPos) {
@@ -268,7 +254,7 @@ const OuraCanvasApp = (): JSX.Element => {
         [nodePickerPos]
     );
 
-    const onMouseDown = React.useCallback(
+    const onMouseDown = useCallback(
         (e: React.MouseEvent) => {
             if (nodePickerPos && !nodePickerOnMouseHover) {
                 setNodePickerOnMouseHover(false);
@@ -278,54 +264,6 @@ const OuraCanvasApp = (): JSX.Element => {
         },
         [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]
     );
-
-    const onSaveButton = useCallback(() => {
-        const data = {
-            nodes: nodes,
-            links: links
-        };
-
-        const element = document.createElement("a");
-        element.setAttribute(
-            "href",
-            "data:text/plain;charset=utf-8," + encodeURIComponent(JSON.stringify(data))
-        );
-        element.setAttribute("download", "oura-node-editor.json");
-
-        element.style.display = "none";
-        document.body.appendChild(element);
-
-        element.click();
-
-        document.body.removeChild(element);
-    }, [nodes, links]);
-
-    const onLoadButton = useCallback((evt: any) => {
-        taskQueue.reset();
-        if (evt.target.files.size < 1) {
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = (file) => {
-            if (file.target && file.target.result && file.target.result) {
-                const data = JSON.parse(atob((file.target.result as string).substring(29)));
-                Object.keys(data.nodes).forEach((key) => {
-                    data.nodes[key] = createNodeFromJson(data.nodes[key], key, setNodes);
-                });
-                setNodes(data.nodes);
-                setLinks(data.links);
-                setRunFirstPropagation(true);
-            }
-        };
-        reader.readAsDataURL(evt.target.files[0]);
-    }, []);
-
-    const onResetButton = useCallback(() => {
-        taskQueue.reset();
-        setNodes({});
-        setLinks({});
-    }, []);
 
     let nodePicker = null;
     if (nodePickerPos && selectedItems.length === 0) {
@@ -382,7 +320,7 @@ const OuraCanvasApp = (): JSX.Element => {
                     links={links}
                     selectedItems={selectedItems}
                     onPanZoomInfo={setPanZoomInfo}
-                    onSelectedItems={setSelectedItemsAndMoveSelectedNodeFront}
+                    onSelectedItems={setSelectedItems}
                     onNodeMove={onNodeMove}
                     onCreateLink={onCreateLink}
                     onConnectorUpdate={onConnectorUpdate}
@@ -390,33 +328,7 @@ const OuraCanvasApp = (): JSX.Element => {
                 />
                 {nodePicker}
             </div>
-            <button
-                onClick={onSaveButton}
-                className="input btn-primary input-xs focus:outline-0"
-                style={{ position: "absolute", left: 5, bottom: 5 }}
-            >
-                save
-            </button>
-            <label
-                htmlFor="files"
-                className="input btn-primary input-xs focus:outline-0"
-                style={{ position: "absolute", left: 55, bottom: 5 }}
-            >
-                load
-            </label>
-            <input
-                onChange={onLoadButton}
-                id="files"
-                style={{ visibility: "hidden" }}
-                type="file"
-            />
-            <button
-                onClick={onResetButton}
-                className="input btn-primary input-xs focus:outline-0"
-                style={{ position: "absolute", right: 5, bottom: 5 }}
-            >
-                reset
-            </button>
+            <BottomActions onSave={onSave} onLoad={onLoad} onReset={onReset} />
         </>
     );
 };
