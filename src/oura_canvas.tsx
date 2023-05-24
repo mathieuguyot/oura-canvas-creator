@@ -268,12 +268,16 @@ const OuraCanvasApp = (): JSX.Element => {
         [nodePickerPos]
     );
 
-    const onMouseDown = React.useCallback(() => {
-        if (nodePickerPos && !nodePickerOnMouseHover) {
-            setNodePickerOnMouseHover(false);
-            setNodePickerPos(null);
-        }
-    }, [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]);
+    const onMouseDown = React.useCallback(
+        (e: React.MouseEvent) => {
+            if (nodePickerPos && !nodePickerOnMouseHover) {
+                setNodePickerOnMouseHover(false);
+                setNodePickerPos(null);
+                e.stopPropagation();
+            }
+        },
+        [nodePickerOnMouseHover, nodePickerPos, setNodePickerPos]
+    );
 
     const onSaveButton = useCallback(() => {
         const data = {
