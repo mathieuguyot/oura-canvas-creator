@@ -4,19 +4,21 @@ type BottomActionsProps = {
     onReset: () => void;
 };
 
+const buttonStyle = "input btn-primary input-xs focus:outline-0";
+
 export default function BottomActions({ onSave, onLoad, onReset }: BottomActionsProps) {
     return (
         <>
             <button
                 onClick={onSave}
-                className="input btn-primary input-xs focus:outline-0"
+                className={buttonStyle}
                 style={{ position: "absolute", left: 5, bottom: 5 }}
             >
                 save
             </button>
             <label
                 htmlFor="files"
-                className="input btn-primary input-xs focus:outline-0"
+                className={buttonStyle}
                 style={{ position: "absolute", left: 55, bottom: 5 }}
             >
                 load
@@ -24,7 +26,7 @@ export default function BottomActions({ onSave, onLoad, onReset }: BottomActions
             <input onChange={onLoad} id="files" style={{ visibility: "hidden" }} type="file" />
             <button
                 onClick={onReset}
-                className="input btn-primary input-xs focus:outline-0"
+                className={buttonStyle}
                 style={{ position: "absolute", right: 5, bottom: 5 }}
             >
                 reset
