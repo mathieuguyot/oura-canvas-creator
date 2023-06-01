@@ -1,4 +1,4 @@
-import { generateUuid, NodeCollection, LinkCollection, PinSide } from "oura-node-editor";
+import { generateUuid, NodeCollection, LinkCollection } from "oura-node-editor";
 import RectangleNode from "./nodes/rectangle";
 
 export function dumbNodeCreator(): NodeCollection {
@@ -20,12 +20,10 @@ export function dumbLinkCreator(nodes: NodeCollection): LinkCollection {
         Object.keys(nodes).forEach((outputKey) => {
             if (inputKey !== outputKey) {
                 links[generateUuid()] = {
-                    inputNodeId: inputKey,
-                    inputPinSide: PinSide.RIGHT,
-                    inputPinId: "0",
-                    outputNodeId: outputKey,
-                    outputPinSide: PinSide.LEFT,
-                    outputPinId: (Math.floor(Math.random() * 4) + 1).toString()
+                    leftNodeId: inputKey,
+                    leftNodeConnectorId: "0",
+                    rightNodeId: outputKey,
+                    rightNodeConnectorId: (Math.floor(Math.random() * 4) + 1).toString()
                 };
             }
         });

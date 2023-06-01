@@ -133,7 +133,7 @@ const OuraCanvasApp = (): JSX.Element => {
                 Object.keys(links).forEach((linkKey) => {
                     const link = links[linkKey];
                     if (
-                        deleteNodeIds.includes(link.inputNodeId) ||
+                        deleteNodeIds.includes(link.leftNodeId) ||
                         deleteNodeIds.includes(link.outputNodeId)
                     ) {
                         delete draft[linkKey];
@@ -155,14 +155,14 @@ const OuraCanvasApp = (): JSX.Element => {
             Object.keys(links).forEach((linkKey) => {
                 const link = links[linkKey];
                 if (
-                    deleteNodeIds.includes(link.inputNodeId) ||
+                    deleteNodeIds.includes(link.leftNodeId) ||
                     deleteNodeIds.includes(link.outputNodeId)
                 ) {
                     if (
                         deleteNodeIds.includes(link.outputNodeId) &&
-                        !deleteNodeIds.includes(link.inputNodeId)
+                        !deleteNodeIds.includes(link.leftNodeId)
                     ) {
-                        nodeIdToRecompute.push(link.inputNodeId);
+                        nodeIdToRecompute.push(link.leftNodeId);
                     }
                     delete draft[linkKey];
                 }

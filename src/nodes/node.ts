@@ -13,7 +13,7 @@ function getOutputLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
     Object.keys(links).forEach((linkKey) => {
         const link = links[linkKey];
-        if (link.outputNodeId === nodeId) {
+        if (link.rightNodeId === nodeId) {
             linkOutputs[linkKey] = links[linkKey];
         }
     });
@@ -24,7 +24,7 @@ function getInputsLinks(nodeId: string, links: LinkCollection): LinkCollection {
     const linkOutputs: LinkCollection = {};
     Object.keys(links).forEach((linkKey) => {
         const link = links[linkKey];
-        if (link.inputNodeId === nodeId) {
+        if (link.leftNodeId === nodeId) {
             linkOutputs[linkKey] = links[linkKey];
         }
     });
@@ -50,7 +50,7 @@ function createPropagationTree(
         nodeId in propagationDict ? Math.max(depth, propagationDict[nodeId]) : depth;
     const outputLinks = getOutputLinks(nodeId, links);
     Object.keys(outputLinks).forEach((linkKey) => {
-        createPropagationTree(links[linkKey].inputNodeId, links, depth + 1, propagationDict);
+        createPropagationTree(links[linkKey].leftNodeId, links, depth + 1, propagationDict);
     });
 }
 
@@ -83,14 +83,14 @@ export class TaskQueue {
         // 1. search output node
         const fLinkId = Object.keys(links).find((key) => {
             const link = links[key];
-            return link.outputNodeId === nodeId && link.outputPinId === "0";
+            return link.rightNodeId === nodeId && link.rightNodeConnectorId === "0";
         });
         if (!fLinkId) {
             console.log("no node id");
             return;
         }
 
-        const fOutId = links[fLinkId].inputNodeId;
+        const fOutId = links[fLinkId].leftNodeId;
         this.functionCalls.unshift({
             functionOutId: fOutId,
             inputs: fIns,
@@ -127,8 +127,8 @@ export class TaskQueue {
             const fOutIdLinks = getInputsLinks(fOutId, links);
             let fInId = "";
             Object.keys(fOutIdLinks).forEach((k) => {
-                if (links[k].inputPinId === "0") {
-                    fInId = links[k].outputNodeId;
+                if (links[k].leftNodeConnectorId === "0") {
+                    fInId = links[k].rightNodeId;
                 }
             });
             const fIn = nodes[fInId];
@@ -192,21 +192,21 @@ export class TaskQueue {
             const node = nodes[nodeId] as Node;
             const outputsLinks = getInputsLinks(nodeId, links);
             const outputsNodes = Object.keys(outputsLinks).map((k) => {
-                return links[k].outputNodeId;
+                return links[k].rightNodeId;
             });
 
             let readyToCompute = true;
             if (node.name === NodeName.IfElse) {
                 Object.keys(outputsLinks).forEach((ifLinkId) => {
-                    if (links[ifLinkId].inputPinId === "1") {
+                    if (links[ifLinkId].leftNodeConnectorId === "1") {
                         if (ifLinkId in functionCall.propagationValues) {
                             const res = functionCall.propagationValues[ifLinkId] as boolean;
                             Object.keys(outputsLinks).forEach((k) => {
                                 if (
-                                    (links[k].inputPinId === "2" && res) ||
-                                    (links[k].inputPinId === "3" && !res)
+                                    (links[k].leftNodeConnectorId === "2" && res) ||
+                                    (links[k].leftNodeConnectorId === "3" && !res)
                                 ) {
-                                    const id = links[k].outputNodeId;
+                                    const id = links[k].rightNodeId;
                                     if (!functionCall.alreadyComputedNodes.includes(id)) {
                                         readyToCompute = false;
                                         functionCall.toBeComputed.unshift([id, false]);
@@ -215,10 +215,7 @@ export class TaskQueue {
                             });
                         } else {
                             readyToCompute = false;
-                            functionCall.toBeComputed.unshift([
-                                links[ifLinkId].outputNodeId,
-                                false
-                            ]);
+                            functionCall.toBeComputed.unshift([links[ifLinkId].rightNodeId, false]);
                         }
                     }
                 });
@@ -239,7 +236,7 @@ export class TaskQueue {
                     if (!(linkId in functionCall.propagationValues)) {
                         return;
                     }
-                    const pinId = links[linkId].inputPinId;
+                    const pinId = links[linkId].leftNodeConnectorId;
                     if (pinId in node.connectors) {
                         if (node.connectors[pinId].isMultiInputAllowed) {
                             if (!(pinId in inputValues)) {
@@ -277,7 +274,7 @@ export class TaskQueue {
                 const ouputsLinks = getOutputLinks(nodeId, links);
                 Object.keys(ouputsLinks).forEach((linkId) => {
                     functionCall.propagationValues[linkId] =
-                        outputValues[links[linkId].outputPinId];
+                        outputValues[links[linkId].rightNodeConnectorId];
                 });
                 functionCall.alreadyComputedNodes.push(nodeId);
                 functionCall.toBeComputed.shift();
@@ -287,7 +284,8 @@ export class TaskQueue {
                 const fLinkResId = Object.keys(links).find((key) => {
                     const link = links[key];
                     return (
-                        link.inputNodeId === functionCall.functionOutId && link.inputPinId === "1"
+                        link.leftNodeId === functionCall.functionOutId &&
+                        link.leftNodeConnectorId === "1"
                     );
                 });
                 if (fLinkResId && fLinkResId in functionCall.propagationValues) {
@@ -316,7 +314,7 @@ export class TaskQueue {
                 if (!(linkId in this.propagationValues)) {
                     return;
                 }
-                const pinId = links[linkId].inputPinId;
+                const pinId = links[linkId].leftNodeConnectorId;
                 if (node.connectors[pinId] && node.connectors[pinId].isMultiInputAllowed) {
                     if (!(pinId in inputValues)) {
                         inputValues[pinId] = [];
@@ -351,7 +349,7 @@ export class TaskQueue {
             // Adding values to propagationValues
             const ouputsLinks = getOutputLinks(propagingNodeId[0], links);
             Object.keys(ouputsLinks).forEach((linkId) => {
-                this.propagationValues[linkId] = outputValues[links[linkId].outputPinId];
+                this.propagationValues[linkId] = outputValues[links[linkId].rightNodeConnectorId];
             });
             this.tasks.shift();
         }
