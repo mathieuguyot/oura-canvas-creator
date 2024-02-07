@@ -108,7 +108,7 @@ const OuraCanvasApp = (): JSX.Element => {
             const newLinks = produce(links, (draft) => {
                 draft[generateUuid()] = link;
             });
-            taskQueue.propagateNode(link.outputNodeId, nodes, newLinks);
+            taskQueue.propagateNode(link.rightNodeId, nodes, newLinks);
             taskQueue.runAll(nodes, newLinks, setNodes);
         },
         [links, nodes, setLinks, setNodes]
@@ -134,7 +134,7 @@ const OuraCanvasApp = (): JSX.Element => {
                     const link = links[linkKey];
                     if (
                         deleteNodeIds.includes(link.leftNodeId) ||
-                        deleteNodeIds.includes(link.outputNodeId)
+                        deleteNodeIds.includes(link.rightNodeId)
                     ) {
                         delete draft[linkKey];
                     }
@@ -156,10 +156,10 @@ const OuraCanvasApp = (): JSX.Element => {
                 const link = links[linkKey];
                 if (
                     deleteNodeIds.includes(link.leftNodeId) ||
-                    deleteNodeIds.includes(link.outputNodeId)
+                    deleteNodeIds.includes(link.rightNodeId)
                 ) {
                     if (
-                        deleteNodeIds.includes(link.outputNodeId) &&
+                        deleteNodeIds.includes(link.rightNodeId) &&
                         !deleteNodeIds.includes(link.leftNodeId)
                     ) {
                         nodeIdToRecompute.push(link.leftNodeId);

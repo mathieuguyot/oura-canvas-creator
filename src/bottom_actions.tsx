@@ -4,7 +4,7 @@ type BottomActionsProps = {
     onReset: () => void;
 };
 
-const buttonStyle = "input btn-primary input-xs focus:outline-0";
+const buttonStyle = "input bg-primary btn-secondary input-xs focus:outline-0";
 
 export default function BottomActions({ onSave, onLoad, onReset }: BottomActionsProps) {
     return (
