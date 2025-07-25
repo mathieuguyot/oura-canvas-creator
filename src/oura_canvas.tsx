@@ -12,7 +12,6 @@ import {
     XYPosition,
     SelectionItem,
     AddNodeContextualMenu,
-    SelectionManagementContextualMenu,
     useNodeEditor
 } from "oura-node-editor";
 import { createNodeFromJson, createNodeSchema } from "./nodes";
@@ -181,7 +180,8 @@ const OuraCanvasApp = (): JSX.Element => {
             taskQueue.propagateNode(nodeId, newNodes, newLinks);
             taskQueue.runAll(newNodes, newLinks, setNodes);
         });
-    }, [selectedItems, setNodes, setLinks, nodes, links]);
+        setSelectedItems([]);
+    }, [selectedItems, setSelectedItems, setNodes, setLinks, nodes, links]);
 
     const [newNodeId, setNewNodeId] = useState<string | undefined>(undefined);
     useEffect(() => {
@@ -266,7 +266,7 @@ const OuraCanvasApp = (): JSX.Element => {
     );
 
     let nodePicker = null;
-    if (nodePickerPos && selectedItems.length === 0) {
+    if (nodePickerPos) {
         nodePicker = (
             <div
                 style={{
@@ -283,24 +283,6 @@ const OuraCanvasApp = (): JSX.Element => {
                     onNodeSelection={onNodeSelection}
                     onMouseHover={setNodePickerOnMouseHover}
                     createCustomConnectorComponent={createCustomConnectorsContents}
-                />
-            </div>
-        );
-    } else if (nodePickerPos) {
-        nodePicker = (
-            <div
-                style={{
-                    width: 640,
-                    height: 480,
-                    position: "absolute",
-                    top: nodePickerPos.y,
-                    left: nodePickerPos.x,
-                    backgroundColor: "white"
-                }}
-            >
-                <SelectionManagementContextualMenu
-                    onMouseHover={setNodePickerOnMouseHover}
-                    onDeleteSelection={onDeleteSelection}
                 />
             </div>
         );
@@ -328,7 +310,7 @@ const OuraCanvasApp = (): JSX.Element => {
                 />
                 {nodePicker}
             </div>
-            <BottomActions onSave={onSave} onLoad={onLoad} onReset={onReset} />
+            <BottomActions selectedItems={selectedItems} onSave={onSave} onLoad={onLoad} onReset={onReset} onDelete={onDeleteSelection} />
         </>
     );
 };
