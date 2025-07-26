@@ -2,7 +2,7 @@
 import Node from "./node";
 import { NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
-import produce from "immer";
+import { produce } from "immer";
 
 export class ObjectCreatorNode extends Node {
     public nodeId?: string;

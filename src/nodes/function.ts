@@ -2,7 +2,7 @@
 import Node, { TaskQueue } from "./node";
 import { LinkCollection, NodeCollection, PinLayout } from "oura-node-editor";
 import { NodeName } from "./consts";
-import produce from "immer";
+import { produce } from "immer";
 import { Dispatch, SetStateAction } from "react";
 
 export class FunctionCallNode extends Node {

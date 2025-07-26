@@ -1,6 +1,6 @@
+import { JSX, useEffect, useRef } from "react";
 import { ConnectorContentProps } from "oura-node-editor";
 import * as THREE from "three";
-import { useEffect, useRef } from "react";
 
 const ThreeJs = (props: ConnectorContentProps): JSX.Element => {
     const divRef = useRef<HTMLDivElement>(null);

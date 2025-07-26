@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { JSX, useEffect, useRef } from "react";
 import { ConnectorContentProps } from "oura-node-editor";
 
 const Canvas = (props: ConnectorContentProps): JSX.Element => {

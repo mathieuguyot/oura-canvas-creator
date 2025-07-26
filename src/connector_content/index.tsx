@@ -1,3 +1,4 @@
+import { JSX } from "react";
 import { ConnectorContentProps } from "oura-node-editor";
 import Canvas from "./canvas";
 import ThreeJs from "./threejs";
