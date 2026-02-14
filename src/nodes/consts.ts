@@ -27,5 +27,7 @@ export enum NodeName {
     Shift = "shift",
     ObjectCreatorNode = "object-creator",
     ObjectExtractorNode = "object-extractor",
-    LambdaCall = "lambda-call"
+    LambdaCall = "lambda-call",
+    Python = "python",
+    Image = "image"
 }

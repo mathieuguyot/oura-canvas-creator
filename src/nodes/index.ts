@@ -31,6 +31,8 @@ import TextAreaNode from "./textArea";
 import { PopNode, ShiftNode } from "./pop";
 import LengthNode from "./length";
 import { ObjectCreatorNode, ObjectExtractorNode } from "./object";
+import PythonNode from "./python";
+import ImageNode from "./image";
 
 function createNodeSchema(): { [nId: string]: NodeModel } {
     return {
@@ -62,7 +64,9 @@ function createNodeSchema(): { [nId: string]: NodeModel } {
         25: new ShiftNode(),
         26: new ObjectCreatorNode(),
         27: new ObjectExtractorNode(),
-        28: new LambdaCallNode()
+        28: new LambdaCallNode(),
+        29: new PythonNode(),
+        30: new ImageNode()
     };
 }
 
@@ -159,6 +163,12 @@ function createNodeFromJson(
             break;
         case NodeName.LambdaCall:
             node = LambdaCallNode.createFromJson(jsonObj, nodeId, setNodes);
+            break;
+        case NodeName.Python:
+            node = PythonNode.createFromJson(jsonObj);
+            break;
+        case NodeName.Image:
+            node = ImageNode.createFromJson(jsonObj);
             break;
     }
     if (!node) {

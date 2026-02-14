@@ -14,7 +14,10 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "noEmit": true,
-        "jsx": "react-jsx"
+        "jsx": "react-jsx",
+        "paths": {
+            "oura-node-editor": ["../oura-node-editor/dist"]
+        }
     },
     "include": ["src"],
     "references": [
